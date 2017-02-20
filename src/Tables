@@ -43,7 +43,7 @@ CREATE TABLE Hotels (
   locationcountry TEXT NOT NULL,
   locationarea TEXT NOT NULL,
   ownercountry TEXT NOT NULL,
-  ownerpersonnummer CHAR(13) CHECK(personnummer ~ '[0-9]{8}-[0-9]{4}' OR personnummer ~ ' ') ,
+  ownerpersonnummer CHAR(13) CHECK(ownerpersonnummer ~ '[0-9]{8}-[0-9]{4}' OR ownerpersonnummer ~ ' ') ,
   PRIMARY KEY (locationcountry, locationarea, ownercountry, ownerpersonnummer),
   FOREIGN KEY (ownercountry, ownerpersonnummer) REFERENCES Persons(country, personnummer),
   FOREIGN KEY (locationcountry, locationarea) REFERENCES Cities(country, name)
@@ -55,7 +55,7 @@ CREATE TABLE Roads (
   tocountry TEXT NOT NULL,
   toarea TEXT NOT NULL,
   ownercountry TEXT NOT NULL,
-  ownerpersonnummer CHAR(13) CHECK(personnummer ~ '[0-9]{8}-[0-9]{4}' OR personnummer ~ ' ') ,
+  ownerpersonnummer CHAR(13) CHECK(ownerpersonnummer ~ '[0-9]{8}-[0-9]{4}' OR ownerpersonnummer ~ ' ') ,
   roadtax NUMERIC NOT NULL  CHECK (roadtax >= 0),
   PRIMARY KEY (fromcountry, fromarea, tocountry, toarea, ownercountry, ownerpersonnummer),
   FOREIGN KEY (ownercountry, ownerpersonnummer) REFERENCES Persons(country, personnummer),
@@ -63,10 +63,10 @@ CREATE TABLE Roads (
   FOREIGN KEY (tocountry, toarea) REFERENCES Areas(country, name)
 );
 
-INSERT  INTO  Countries  VALUES('');
+INSERT  INTO  Countries  VALUES(' ');
 INSERT  INTO  Countries  VALUES('Swe');
-INSERT  INTO  Areas  VALUES('Swe', 'Gbg', 491630);
-INSERT  INTO  Persons  VALUES('', ' ', 'The government ', 'Swe', 'Gbg', 100000000000);
+INSERT  INTO  Areas  VALUES('Gbg', 'Swe', 491630);
+INSERT  INTO  Persons  VALUES(' ', ' ', 'The government', 'Swe', 'Gbg', 100000000000);
 
 
 INSERT INTO Cities
@@ -89,21 +89,21 @@ VALUES('Bor','Swe');
 
 INSERT INTO Persons
 VALUES('Swe',
-       '199402024815',
+       '19940202-4815',
        'Jonatan Gustafsson',
        'Swe',
        'Gbg',
        150000 );
 INSERT INTO Persons
 VALUES('Swe',
-       '199607082667',
+       '19960708-2667',
        'Therese Sturesson',
        'Swe',
        'Gbg',
        150000 );
 INSERT INTO Persons
 VALUES('Swe',
-       '199607082666',
+       '19960708-2666',
        'Theodor Sturesson',
        'Swe',
        'Lish',
@@ -205,17 +205,9 @@ INSERT INTO ROADS
 VALUES('Swe',
        'Gbg',
        'Swe',
-       'Sth',
-       'Swe',
-       '199402024815',
-       111);
-INSERT INTO ROADS
-VALUES('Swe',
-       'Gbg',
-       'Swe',
        'Lish',
        'Swe',
-       '199402024815',
+       '19940202-4815',
        111);
 INSERT INTO ROADS
 VALUES('Swe',
@@ -223,7 +215,7 @@ VALUES('Swe',
        'Swe',
        'Bor',
        'Swe',
-       '199402024815',
+       '19940202-4815',
        111);
 INSERT INTO ROADS
 VALUES('Swe',
@@ -231,7 +223,7 @@ VALUES('Swe',
        'Swe',
        'Sth',
        'Swe',
-       '199607082667',
+       '19960708-2667',
        111);
 INSERT INTO ROADS
 VALUES('Swe',
@@ -239,7 +231,7 @@ VALUES('Swe',
        'Swe',
        'Sth',
        'Swe',
-       '199607082666',
+       '19960708-2666',
        getval('roadtax'));
 INSERT INTO ROADS
 VALUES('Swe',
@@ -247,15 +239,15 @@ VALUES('Swe',
        'Swe',
        'Sth',
        'Swe',
-       '199402024815',
+       '19940202-4815',
        getval('roadtax'));
 INSERT INTO ROADS
 VALUES('Swe',
        'Lish',
        'Nor',
-       ‘Osl',
+       'Osl',
       'Swe',
-      '199607082666',
+      '19960708-2666',
       111);
 INSERT INTO ROADS
 VALUES('Fin',
@@ -263,7 +255,7 @@ VALUES('Fin',
       'Swe',
       'Sth',
       'Swe',
-      '199607082667',
+      '19960708-2667',
       111);
 INSERT INTO ROADS
 VALUES('Fin',
@@ -271,35 +263,35 @@ VALUES('Fin',
       'Rus',
       'San',
       'Swe',
-      '199607082667',
+      '19960708-2667',
       111);
 INSERT INTO Hotels
 VALUES('Hotel Moskva',
       'Rus',
       'Mos',
       'Swe',
-      '199607082667');
+      '19960708-2667');
 INSERT INTO Hotels
 VALUES('Hotel Stockholm',
       'Swe',
       'Sth',
       'Swe',
-      '199607082667');
+      '19960708-2667');
 INSERT INTO Hotels
 VALUES('Hotel GBG',
       'Swe',
       'Gbg',
       'Swe',
-      '199402024815');
+      '19940202-4815');
 INSERT INTO Hotels
 VALUES('Hotel Berlin',
       'Ger',
       'Ber',
       'Swe',
-      '199402024815');
+      '19940202-4815');
 INSERT INTO Hotels
 VALUES('Hotel Kobenhavn',
-      'den',
-      'kob',
+      'Den',
+      'Kob',
       'Swe',
-      '199402024815');
+      '19940202-4815');
