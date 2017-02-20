@@ -225,13 +225,96 @@ WHERE personnummer = '19940202-4815'
 
 
 INSERT/DELETE/UPDATE Roads:
-Likewise, if a road (A--B) is about to be deleted, either A->B or B->A may be present in the Roads table. You should remove whichever one of those is present.
+Likewise, if a road (A--B) is about to be deleted, either A->B or B->A may be present in the Roads table. You should
+remove whichever one of those is present.
 
-When a road is created by a Person, ensure that that Person is located at either the startpoint or endpoint of that road, and deduct the price of the road (getval('roadprice')) from that Person's budget.
+When a road is created by a Person, ensure that that Person is located at either the startpoint or endpoint of that
+road, and deduct the price of the road (getval('roadprice')) from that Person's budget.
 
-Finally, make sure that only the roadtax field in a road can be updated, since the game does not allow a road to change the startpoint, endpoint or owner.
+Finally, make sure that only the roadtax field in a road can be updated, since the game does not allow a road to change
+the startpoint, endpoint or owner.
+
 --END Roads
 ----------------------------------------------------------------------------------
---BEGIN XXXXXXX
+--BEGIN Person
+
+CREATE OR REPLACE FUNCTION update_person() RETURNS TRIGGER AS $$
+DECLARE
+    newLocationCity BOOLEAN;
 
 
+BEGIN
+--Person står i en area, när den ska gå någonstans måste man kolla att det finns en väg (if-sats (1))
+--Finns det en väg så ska man i första hand ta den som är gratis (if-sats (2))
+--i andra hand den som är billigast, dra då bort roadtax från person budget (else-sats (2))
+--updatera sedan att personen flyttat på sig
+
+
+
+
+
+
+
+--om person har gått till city, och det finns hotels, dra bort getval(’cityvisit’) från budget (if-sats (3))
+--dela upp getval(’cityvisit’) jämt mellan hotellägarna
+--om det finns visitbonus, ge det till person (if-sats (4))
+
+    newLocationCity := (
+        EXISTS (SELECT * FROM Cities WHERE NEW.locationcountry = country AND NEW.locationarea = name )
+    );
+
+IF(newlocationCity) THEN
+
+    --lägg till visitbonus till budget (UPDATE)
+    --nollställa visitbonus (UPDATE)
+    --Ny if-sats med att dra bort cityvisit från budget
+
+
+
+    END IF;
+  --RETURN NEW; ??
+
+
+
+END
+$$ LANGUAGE 'plpgsql';
+
+
+
+--Komentarer:
+--Person står i en area, när den ska gå någonstans måste man kolla att det finns en väg (if-sats (1))
+--Finns det en väg så ska man i första hand ta den som är gratis (if-sats (2))
+--i andra hand den som är billigast, dra då bort roadtax från person budget (else-sats (2))
+--updatera sedan att personen flyttat på sig
+--om person har gått till city, och det finns hotels, dra bort getval(’cityvisit’) från budget (if-sats (3))
+--dela upp getval(’cityvisit’) jämt mellan hotellägarna
+--om det finns visitbonus, ge det till person (if-sats (4))
+
+UPDATE Persons:
+A Person is always located in an Area. When a person moves, you must ensure that there is a road between the old
+and new area that Person is in.
+
+If there are multiple roads, use a free one if possible (a public road, or a road owned by that person), otherwise
+find the cheapest road and deduct the roadtax from the Person’s budget before updating the Person’s location to the
+new area.
+
+When a person moves to a city, and there are hotels in that city, deduct getval(’cityvisit’) for visiting a city from
+the Person’s budget and transfer that money equally to all hotelowners that have a hotel in that city.
+
+Finally, if a city has a visiting bonus, transfer it to the visiting Person.
+
+--END Person
+----------------------------------------------------------------------------------
+--BEGIN Hotels
+
+
+
+
+
+INSERT/UPDATE Hotels When a hotel is created, the price of the hotel must be deducted from that Person’s budget.
+Hotels can not be moved to a new city, but they can change owner. Keep in mind that a Person can only own one Hotel
+per City. Persons can sell their hotel, in which case the hotel is deleted from the Hotels table. When that happens,
+the Person get refunded with a fraction (getval(’hotelrefund’)) of the price of the hotel (getval(’hotelprice’)).
+
+--END Hotels
+----------------------------------------------------------------------------------
