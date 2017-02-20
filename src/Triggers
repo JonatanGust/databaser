@@ -15,9 +15,11 @@ BEGIN
              FROM Roads JOIN Persons AS p ON (ownercountry = p.country
                                             AND ownerpersonnummer = p.personnummer)
              WHERE tocountry = NEW.fromcountry
-             AND toarea = NEW.fromarea
-             AND fromcountry = NEW.tocountry
-             AND fromarea = NEW.toarea
+                   AND toarea = NEW.fromarea
+                   AND fromcountry = NEW.tocountry
+                   AND fromarea = NEW.toarea
+                   AND NEW.ownercountry = p.country
+                   AND NEW.ownerpersonnummer = p.personnummer)
             )
           UNION
             (SELECT *
@@ -27,6 +29,8 @@ BEGIN
                    AND r.fromarea = NEW.fromarea
                    AND r.tocountry = NEW.tocountry
                    AND r.toarea = NEW.toarea
+                   AND NEW.ownercountry = p.country
+                   AND NEW.ownerpersonnummer = p.personnummer)
             )
           ))
   );
@@ -34,16 +38,18 @@ BEGIN
     EXISTS(SELECT *
           FROM  (
              (SELECT *
-                 FROM Roads JOIN Persons AS p ON (ownercountry = p.country
-                                              AND ownerpersonnummer = p.personnummer)
-              WHERE p.locationcountry = NEW.fromcountry
-                    AND p.locationarea = NEW.fromarea) AS hue
+                 FROM Persons
+              WHERE locationcountry = NEW.fromcountry
+                    AND locationarea = NEW.fromarea
+                     AND NEW.ownercountry = country
+                     AND NEW.ownerpersonnummer = personnummer) AS hue
               UNION
              (SELECT *
-             FROM Roads JOIN Persons AS p ON (ownercountry = p.country
-                                              AND ownerpersonnummer = p.personnummer)
-                    WHERE p.locationcountry = NEW.fromcountry
-                    AND p.locationarea = NEW.fromarea)AS huehue
+             FROM Persons
+                    WHERE locationcountry = NEW.fromcountry
+                    AND locationarea = NEW.fromarea
+                     AND NEW.ownercountry = country
+                     AND NEW.ownerpersonnummer = personnummer)AS huehue
              )
     );
   If (alreadyexisting) THEN
