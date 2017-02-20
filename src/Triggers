@@ -12,28 +12,30 @@ BEGIN
         SELECT *
      FROM (
             (SELECT *
-             FROM Roads JOIN Persons AS p ON (ownercountry = p.country
-                                            AND ownerpersonnummer = p.personnummer)
+             FROM Roads JOIN Persons AS p ON ownercountry = p.country
+                                            AND ownerpersonnummer = p.personnummer
              WHERE tocountry = NEW.fromcountry
                    AND toarea = NEW.fromarea
                    AND fromcountry = NEW.tocountry
                    AND fromarea = NEW.toarea
                    AND NEW.ownercountry = p.country
-                   AND NEW.ownerpersonnummer = p.personnummer)
-            )
+                   AND NEW.ownerpersonnummer = p.personnummer
+             )AS hue
+
           UNION
             (SELECT *
-             FROM Roads JOIN Persons AS p ON (ownercountry = p.country
-                                             AND ownerpersonnummer = p.personnummer)
+             FROM Roads JOIN Persons AS p ON ownercountry = p.country
+                                             AND ownerpersonnummer = p.personnummer
              WHERE r.fromcountry = NEW.fromcountry
                    AND r.fromarea = NEW.fromarea
                    AND r.tocountry = NEW.tocountry
                    AND r.toarea = NEW.toarea
                    AND NEW.ownercountry = p.country
-                   AND NEW.ownerpersonnummer = p.personnummer)
-            )
-          ))
-  );
+                   AND NEW.ownerpersonnummer = p.personnummer
+              )AS huehue
+
+
+  )));
   ownerisatethierplace :=(
     EXISTS(SELECT *
           FROM  (
@@ -51,15 +53,17 @@ BEGIN
                      AND NEW.ownercountry = country
                      AND NEW.ownerpersonnummer = personnummer)AS huehue
              )
-    );
+    ));
   If (alreadyexisting) THEN
       RAISE EXCEPTION 'Road already exist with the same owner';
   ELSEIF(ownerisatethierplace) THEN
       UPDATE Persons SET budget = budget - getval('roadprice')
       WHERE NEW.ownercountry = country
             AND NEW.ownerpersonnummer = personnummer;
+      RETURN NEW;
+  ELSE
+      RAISE EXCEPTION 'Person not in any of connected areas';
   END IF;
-  RETURN NEW;
 END
 $$ LANGUAGE 'plpgsql';
 
@@ -138,7 +142,7 @@ $$ LANGUAGE 'plpgsql';
 */
 
 
-CREATE OR REPLACE FUNCTION road_deletion() RETURNS TRIGGER AS $$
+/*CREATE OR REPLACE FUNCTION road_deletion() RETURNS TRIGGER AS $$
 DECLARE
   existingasreverse BOOLEAN;
 BEGIN
@@ -173,17 +177,51 @@ DROP TRIGGER IF EXISTS delete_road ON Roads;
 CREATE TRIGGER delete_road BEFORE DELETE ON Roads
 FOR EACH ROW
 WHEN (pg_trigger_depth() < 1)
-EXECUTE PROCEDURE road_deletion();
+EXECUTE PROCEDURE road_deletion();*/
 
 
 DELETE
 FROM Roads
-WHERE fromcountry = 'Rus'
-      AND fromarea = 'San'
-      AND tocountry = 'Fin'
-      AND toarea = 'Hel'
+WHERE (fromcountry = 'Rus' OR )
+      AND (fromarea = 'San' OR )
+      AND (tocountry = 'Fin' OR )
+      AND (toarea = 'Hel' OR )
       AND ownercountry = 'Swe'
       AND ownerpersonnummer = '199607082667';
+
+
+
+CREATE OR REPLACE FUNCTION is_road_update_ok() RETURNS TRIGGER AS $$
+DECLARE
+  onlyroadtaxupdate BOOLEAN;
+BEGIN
+  onlyroadtaxupdate :=(
+  NEW.ownercountry = OLD.ownercountry
+  AND NEW.ownerpersonnummer = OLD.ownerpersonnummer
+  AND NEW.fromarea = OLD.fromarea
+  AND NEW.fromcountry = OLD.fromcountry
+  AND NEW.toarea = OLD.toarea
+  AND NEW.tocountry = OLD.tocountry
+  AND CHECK (roadtax >= 0)
+  )
+  IF(NOT onlyroadtaxupdate) THEN
+    RAISE EXCEPTION 'Only roadtax is to be updated (and > than 0!)';
+  END IF;
+  RETURN TRUE;
+END;
+$$ LANGUAGE 'plpgsql';
+
+
+DROP TRIGGER IF EXISTS road_update ON Roads;
+
+CREATE TRIGGER road_update BEFORE UPDATE ON Roads
+FOR EACH ROW
+WHEN (pg_trigger_depth() < 1)
+EXECUTE PROCEDURE is_road_update_ok();
+
+UPDATE Roads
+VALUES ownercountry = 'Ger'
+WHERE personnummer = '19940202-4815'
 
 
 INSERT/DELETE/UPDATE Roads:
