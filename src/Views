@@ -1,0 +1,100 @@
+CREATE OR REPLACE VIEW NextMoves AS (
+    SELECT country,
+      personnummer,
+      locationcountry,
+      locationarea,
+      destcountry,
+      destarea,
+      MIN(cost)
+    FROM
+        SELECT
+            p.country,
+            p.personnummer,
+            p.locationcountry,
+            p.locationarea,
+            r.fromcountry AS destcountry,
+            r.fromarea    AS destarea,
+            r.roadtax     AS cost
+        FROM  Persons p, Roads r
+        WHERE p.budget > r.roadtax
+              AND p.locationarea = r.toarea
+              AND p.locationcountry = r.tocountry
+    UNION
+        SELECT
+            p.country,
+            p.personnummer,
+            p.locationcountry,
+            p.locationarea,
+            r.tocountry AS destcountry,
+            r.toarea    AS destarea,
+            r.roadtax   AS cost
+        FROM  Persons p, Roads r
+        WHERE p.budget > r.roadtax
+              AND p.locationarea = r.fromarea
+              AND p.locationcountry = r.fromcountry
+    UNION
+        SELECT
+            p.country,
+            p.personnummer,
+            p.locationcountry,
+            p.locationarea,
+            r.tocountry AS destcountry,
+            r.toarea    AS destarea,
+            0   AS cost
+        FROM  Persons p, Roads r
+        WHERE  p.country = r.ownercountry
+            AND p.personnummer = r.ownerpersonnummer
+            AND p.locationarea = r.fromarea
+            AND p.locationcountry = r.fromcountry
+
+    UNION
+        SELECT
+            p.country,
+            p.personnummer,
+            p.locationcountry,
+            p.locationarea,
+            r.tocountry AS destcountry,
+            r.toarea    AS destarea,
+            0   AS cost
+        FROM Persons p, Roads r
+        WHERE  p.country = r.ownercountry
+            AND p.personnummer = r.ownerpersonnummer
+            AND p.locationarea = r.toarea
+            AND p.locationcountry = r.tocountry
+    GROUP BY country,
+    personnummer,
+    locationcountry,
+    locationarea,
+    destcountry,
+    destarea
+);
+
+--2 columns, assets and reclaimable, are made from “nested” code which is why it looks bork
+
+CREATE OR REPLACE VIEW AssetSummary AS(
+    SELECT p.country,
+        p.personnummer,
+        p.budget,
+        (p.numH*getval('hotelprice') + p.numR*getval('roadprice') )AS assets ,
+        p.numH*getval('hotelprice')*getval('hotelrefund') AS reclaimable
+    FROM
+        (SELECT p.country,
+            p.personnummer,
+            p.budget, numH,
+            COALESCE(COUNT(r.roadtax),0) AS numR
+        FROM
+            (SELECT
+                p.country ,
+                p.personnummer ,
+                p.budget ,
+                COALESCE(COUNT(h.name),0) AS numH
+            FROM
+                Persons AS p
+        LEFT OUTER JOIN Hotels AS h ON country = h.ownercountry AND personnummer = h.ownerpersonnummer
+        GROUP BY country, personnummer, budget) AS p
+
+        LEFT OUTER JOIN  Roads AS r ON country = r.ownercountry AND personnummer = r.ownerpersonnummer
+
+    GROUP BY country, personnummer, budget, numH) AS p
+);
+

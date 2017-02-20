@@ -1,0 +1,193 @@
+----------------------------------------------------------------------------------
+--When a road (A->B) is added/deleted, you must ensure that the reverse road(B->A) is not already present for the same owner.
+--BEGIN Roads:
+
+CREATE OR REPLACE FUNCTION check_road_insert_ok() RETURNS TRIGGER AS $$
+DECLARE
+  alreadyexisting BOOLEAN;
+  ownerisatethierplace BOOLEAN;
+BEGIN
+  alreadyexisting :=(
+    EXISTS(
+        SELECT *
+     FROM (
+            (SELECT *
+             FROM Roads JOIN Persons AS p ON (ownercountry = p.country
+                                            AND ownerpersonnummer = p.personnummer)
+             WHERE tocountry = NEW.fromcountry
+             AND toarea = NEW.fromarea
+             AND fromcountry = NEW.tocountry
+             AND fromarea = NEW.toarea
+            )
+          UNION
+            (SELECT *
+             FROM Roads JOIN Persons AS p ON (ownercountry = p.country
+                                             AND ownerpersonnummer = p.personnummer)
+             WHERE r.fromcountry = NEW.fromcountry
+                   AND r.fromarea = NEW.fromarea
+                   AND r.tocountry = NEW.tocountry
+                   AND r.toarea = NEW.toarea
+            )
+          ))
+  );
+  ownerisatethierplace :=(
+    EXISTS(SELECT *
+          FROM  (
+             (SELECT *
+                 FROM Roads JOIN Persons AS p ON (ownercountry = p.country
+                                              AND ownerpersonnummer = p.personnummer)
+              WHERE p.locationcountry = NEW.fromcountry
+                    AND p.locationarea = NEW.fromarea) AS hue
+              UNION
+             (SELECT *
+             FROM Roads JOIN Persons AS p ON (ownercountry = p.country
+                                              AND ownerpersonnummer = p.personnummer)
+                    WHERE p.locationcountry = NEW.fromcountry
+                    AND p.locationarea = NEW.fromarea)AS huehue
+             )
+    );
+  If (alreadyexisting) THEN
+      RAISE EXCEPTION 'Road already exist with the same owner';
+  ELSEIF(ownerisatethierplace) THEN
+      UPDATE Persons SET budget = budget - getval('roadprice')
+      WHERE NEW.ownercountry = country
+            AND NEW.ownerpersonnummer = personnummer;
+  END IF;
+  RETURN NEW;
+END
+$$ LANGUAGE 'plpgsql';
+
+
+DROP TRIGGER IF EXISTS TryInsertNewRoad ON Roads;
+
+CREATE TRIGGER TryInsertNewRoad BEFORE INSERT ON Roads
+FOR EACH ROW
+WHEN (pg_trigger_depth() < 1)
+EXECUTE PROCEDURE check_road_insert_ok();
+------------------- SHOULD FAIL BEGIN
+INSERT INTO Roads
+VALUES(
+  'Rus',
+  'San',
+  'Fin',
+  'Hel',
+  'Swe',
+  '199607082667',
+  111);
+------------------ SHOULD FAIL END
+
+
+/*
+CREATE OR REPLACE FUNCTION road_deletion() RETURNS TRIGGER AS $$
+DECLARE
+  existingasis BOOLEAN;
+  existingasreverse BOOLEAN;
+BEGIN
+  existingasis :=(
+    (SELECT COUNT(p.country)
+     FROM Roads r , Persons p
+     WHERE r.fromcountry = OLD.fromcountry
+           AND r.fromarea = OLD.fromarea
+           AND r.tocountry = OLD.tocountry
+           AND r.toarea = OLD.toarea
+           AND NEW.ownercountry = country
+           AND NEW.ownerpersonnummer = personnummer
+    ) NOTNULL );
+  existingasreverse :=(
+    (SELECT COUNT(p.country)
+     FROM Roads r , Persons p
+     WHERE r.tocountry = NEW.fromcountry
+           AND r.toarea = NEW.fromarea
+           AND r.fromcountry = NEW.tocountry
+           AND r.fromarea = NEW.toarea
+           AND NEW.ownercountry = country
+           AND NEW.ownerpersonnummer = personnummer
+    ) NOTNULL );
+
+  IF (existingasis) THEN
+    DELETE
+    FROM Roads r
+    WHERE r.fromcountry = NEW.fromcountry
+          AND r.fromarea = NEW.fromarea
+          AND r.tocountry = NEW.tocountry
+          AND r.toarea = NEW.toarea
+          AND NEW.ownercountry = r.country
+          AND NEW.ownerpersonnummer = r.personnummer;
+
+  ELSEIF(exsistingasreverse) THEN
+    DELETE
+    FROM Roads r
+    WHERE r.tocountry = NEW.fromcountry
+          AND r.toarea = NEW.fromarea
+          AND r.fromcountry = NEW.tocountry
+          AND r.fromarea = NEW.toarea
+          AND NEW.ownercountry = r.country
+          AND NEW.ownerpersonnummer = r.personnummer;
+
+  ELSE
+    RAISE EXCEPTION 'No such road exist';
+  END IF;
+END;
+$$ LANGUAGE 'plpgsql';
+*/
+
+
+CREATE OR REPLACE FUNCTION road_deletion() RETURNS TRIGGER AS $$
+DECLARE
+  existingasreverse BOOLEAN;
+BEGIN
+  existingasreverse :=(
+    (SELECT COUNT(ownercountry)
+     FROM Roads
+     WHERE r.tocountry = OLD.fromcountry
+           AND r.toarea = OLD.fromarea
+           AND r.fromcountry = OLD.tocountry
+           AND r.fromarea = OLD.toarea
+           AND OLD.ownercountry = r.ownercountry
+           AND OLD.ownerpersonnummer = r.ownerpersonnummer
+    ) NOTNULL );
+
+  IF(exsistingasreverse) THEN
+    DELETE
+    FROM Roads
+    WHERE tocountry = OLD.fromcountry
+          AND toarea = OLD.fromarea
+          AND fromcountry = OLD.tocountry
+          AND fromarea = OLD.toarea
+          AND OLD.ownercountry = ownercountry
+          AND OLD.ownerpersonnummer = ownerpersonnummer;
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE 'plpgsql';
+
+
+DROP TRIGGER IF EXISTS delete_road ON Roads;
+
+CREATE TRIGGER delete_road BEFORE DELETE ON Roads
+FOR EACH ROW
+WHEN (pg_trigger_depth() < 1)
+EXECUTE PROCEDURE road_deletion();
+
+
+DELETE
+FROM Roads
+WHERE fromcountry = 'Rus'
+      AND fromarea = 'San'
+      AND tocountry = 'Fin'
+      AND toarea = 'Hel'
+      AND ownercountry = 'Swe'
+      AND ownerpersonnummer = '199607082667';
+
+
+INSERT/DELETE/UPDATE Roads:
+Likewise, if a road (A--B) is about to be deleted, either A->B or B->A may be present in the Roads table. You should remove whichever one of those is present.
+
+When a road is created by a Person, ensure that that Person is located at either the startpoint or endpoint of that road, and deduct the price of the road (getval('roadprice')) from that Person's budget.
+
+Finally, make sure that only the roadtax field in a road can be updated, since the game does not allow a road to change the startpoint, endpoint or owner.
+--END Roads
+----------------------------------------------------------------------------------
+--BEGIN XXXXXXX
+
+
