@@ -182,10 +182,10 @@ EXECUTE PROCEDURE road_deletion();*/
 
 DELETE
 FROM Roads
-WHERE (fromcountry = 'Rus' OR )
-      AND (fromarea = 'San' OR )
-      AND (tocountry = 'Fin' OR )
-      AND (toarea = 'Hel' OR )
+WHERE (fromcountry = 'Rus' OR fromcountry = 'Fin' )
+      AND (fromarea = 'San' OR fromarea = 'Hel')
+      AND (tocountry = 'Fin' OR tocountry = 'Rus' )
+      AND (toarea = 'Hel' OR toarea = 'San')
       AND ownercountry = 'Swe'
       AND ownerpersonnummer = '199607082667';
 
@@ -224,18 +224,19 @@ VALUES ownercountry = 'Ger'
 WHERE personnummer = '19940202-4815'
 
 
-INSERT/DELETE/UPDATE Roads:
-Likewise, if a road (A--B) is about to be deleted, either A->B or B->A may be present in the Roads table. You should
-remove whichever one of those is present.
+--INSERT/DELETE/UPDATE Roads:
+--Likewise, if a road (A--B) is about to be deleted, either A->B or B->A may be present in the Roads table. You should
+--remove whichever one of those is present.
 
-When a road is created by a Person, ensure that that Person is located at either the startpoint or endpoint of that
-road, and deduct the price of the road (getval('roadprice')) from that Person's budget.
+--When a road is created by a Person, ensure that that Person is located at either the startpoint or endpoint of that
+--road, and deduct the price of the road (getval('roadprice')) from that Person's budget.
 
-Finally, make sure that only the roadtax field in a road can be updated, since the game does not allow a road to change
-the startpoint, endpoint or owner.
+--Finally, make sure that only the roadtax field in a road can be updated, since the game does not allow a road to change
+--the startpoint, endpoint or owner.
 
 --END Roads
-----------------------------------------------------------------------------------
+--------------------------------------------------------------------------------' ||
+
 --BEGIN Person
 
 CREATE OR REPLACE FUNCTION update_person() RETURNS TRIGGER AS $$
