@@ -1,0 +1,14 @@
+
+--Test everything cept towns
+
+INSERT  INTO  Countries  VALUES(' ');
+INSERT  INTO  Countries  VALUES('Swe');
+INSERT  INTO  Areas  VALUES('Gbg', 'Swe', 491630);
+INSERT  INTO  Persons  VALUES(' ', ' ', 'The government', 'Swe', 'Gbg', 100000000000);
+INSERT INTO Cities VALUES( 'Gbg','Swe',0);
+
+
+INSERT INTO Persons VALUES ('Swe', '199402024816', 'Allans klon', 'Swe', 'Gbg', 10000);
+INSERT HOTEL som ^person äger;
+DELETE HOTEL ^;
+ASSERT ^Person budget = XXXXX - (getval('hotelprice')*getval('hotelrefund'));
