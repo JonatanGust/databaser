@@ -1,7 +1,149 @@
 
+-- Test of Person that you should not update the Government --
 
+INSERT INTO Countries
+VALUES('Swe');
 
--- Test of Hotel Update when the person already has an hotel in that city --
+INSERT INTO Areas
+VALUES('Gbg','Swe',2000000);
+INSERT INTO Cities
+VALUES('Gbg','Swe',0);
+
+INSERT  INTO  Persons
+VALUES(' ', ' ', 'The government', 'Swe', 'Gbg', 100000000000);
+
+UPDATE Persons SET (' ', ' ', 'The government', 'Swe', 'Gbg', 100000000000)
+WHERE ( country = ' ',
+        personnummer = '19950403-1990',
+        name = 'The government',
+        locationcountry = 'Swe'
+        locationarea = 'Gbg',
+        budget = 100000000000);
+
+-- Test of Person that you are not allowed to update the country or personnummer of a person --
+
+INSERT INTO Countries
+VALUES('Swe');
+
+INSERT INTO Areas
+VALUES('Gbg','Swe',2000000);
+INSERT INTO Cities
+VALUES('Gbg','Swe',0);
+
+INSERT INTO Persons
+VALUES('Swe',
+       '19960708-2600',
+       'Theo Clone',
+       'Swe',
+       'Gbg',
+       150000 );
+
+UPDATE Persons SET ('Swe','19960708-2600','Theo Clone','Swe','Gbg',150000)
+WHERE ( country = 'Swe',
+        personnummer = '19960708-0000',
+        name = 'Theo Clone',
+        locationcountry = 'Swe'
+        locationarea = 'Gbg',
+        budget = 150000);
+
+-- Test of Person that person has no road connecting to that place --
+
+INSERT INTO Countries
+VALUES('Rus');
+
+INSERT INTO Areas
+VALUES('Mos','Rus',30000);
+INSERT INTO Towns
+VALUES('Mos','Rus');
+
+INSERT INTO Areas
+VALUES('San','Rus',500000);
+INSERT INTO Cities
+VALUES('San','Rus',0);
+
+INSERT INTO Persons
+VALUES('Rus',
+       '19940202-7777',
+       'Hanna Cloneish',
+       'Rus',
+       'Mos',
+       150000);
+
+UPDATE Persons SET ('Rus','19940202-7777','Hanna Cloneish','Rus','Mos',150000)
+WHERE ( country = 'Rus',
+        personnummer = '19940202-7777',
+        name = 'Hanna Cloneish',
+        locationcountry = 'Rus'
+        locationarea = 'San',
+        budget = 150000);
+
+-- Test of Person that person cant afford moving --
+
+INSERT INTO Countries
+VALUES('Den');
+
+INSERT INTO Areas
+VALUES('Jyl','Den',30000);
+INSERT INTO Towns
+VALUES('Jyl','Den');
+
+INSERT INTO Areas
+VALUES('Ros','Den',500000);
+INSERT INTO Cities
+VALUES('Ros','Den',0);
+
+INSERT INTO Persons
+VALUES('Den',
+       '19940202-3333',
+       'John Clonesson',
+       'Den',
+       'Jyl',
+       5);
+
+INSERT INTO Persons
+VALUES('Den',
+       '19940202-4444',
+       'Lilly Clonesson',
+       'Den',
+       'Ros',
+       150000);
+
+INSERT INTO ROADS
+VALUES('Den',
+       'Jyl',
+       'Den',
+       'Ros',
+       'Den',
+       '19940202-4444',
+       111);
+
+UPDATE Persons SET ('Den','19940202-3333','John Clonesson','Den','Jyl',5)
+WHERE ( country = 'Den',
+        personnummer = '19940202-3333',
+        name = 'John Clonesson',
+        locationcountry = 'Den'
+        locationarea = 'Ros',
+        budget = 5);
+
+-- Test of Person that person cant afford staying in that city --
+
+INSERT INTO Countries
+VALUES('Den');
+
+INSERT INTO Areas
+VALUES('Ros','Den',500000);
+INSERT INTO Cities
+VALUES('Ros','Den',0);
+
+INSERT INTO Persons
+VALUES('Den',
+       '19940202-4815',
+       'Jonathan Clonesson',
+       'Den',
+       'Ros',
+       150 );
+
+-- Test of Hotel Insert when the person already has an hotel in that city --
 
 INSERT INTO Countries
 VALUES('Den');
@@ -31,8 +173,41 @@ VALUES('The KobClone Hotel',
       'Den',
       'Kob',
       'Den',
-      '19960708-2670');
+      '19960708-2670')
 
+-- Test of Hotel Insert that person does'nt have enough money
+
+INSERT INTO Countries
+VALUES('Nor');
+
+INSERT INTO Areas
+VALUES('Osl','Nor',3000000);
+INSERT INTO Cities
+VALUES('Osl','Nor',0);
+
+INSERT INTO Areas
+VALUES('Bergen','Nor',3000000);
+INSERT INTO Cities
+VALUES('Bergen','Nor',0);
+
+INSERT INTO Persons
+VALUES('Nor',
+       '19960708-3664',
+       'Theodor Clone',
+       'Nor',
+       'Osl',
+       1 );
+
+INSERT INTO Hotels
+VALUES('Hotel in Oslo',
+      'Nor',
+      'Bergen',
+      'Nor',
+      '19960708-3664')
+
+-- Test of Hotel Update when the person already has an hotel in that city --
+
+-- This test is already done in the test of hotel update
 
 
 -- Test of Hotel Update where only the owner of an hotel can be changed--
@@ -70,7 +245,3 @@ WHERE ( locationcountry = 'Fin',
         locationarea = 'Esbo',
         ownercountry = 'Fin',
         ownerpersonnummer = '19960708-2664');
-
-
--- Test of Hotel Delete --
-
