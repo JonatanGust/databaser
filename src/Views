@@ -6,8 +6,8 @@ CREATE OR REPLACE VIEW NextMoves AS (
       destcountry,
       destarea,
       MIN(cost)
-    FROM
-        SELECT
+    FROM(
+        (SELECT
             p.country,
             p.personnummer,
             p.locationcountry,
@@ -18,9 +18,9 @@ CREATE OR REPLACE VIEW NextMoves AS (
         FROM  Persons p, Roads r
         WHERE p.budget > r.roadtax
               AND p.locationarea = r.toarea
-              AND p.locationcountry = r.tocountry
+              AND p.locationcountry = r.tocountry)
     UNION
-        SELECT
+        (SELECT
             p.country,
             p.personnummer,
             p.locationcountry,
@@ -31,9 +31,9 @@ CREATE OR REPLACE VIEW NextMoves AS (
         FROM  Persons p, Roads r
         WHERE p.budget > r.roadtax
               AND p.locationarea = r.fromarea
-              AND p.locationcountry = r.fromcountry
+              AND p.locationcountry = r.fromcountry)
     UNION
-        SELECT
+        (SELECT
             p.country,
             p.personnummer,
             p.locationcountry,
@@ -45,10 +45,10 @@ CREATE OR REPLACE VIEW NextMoves AS (
         WHERE  p.country = r.ownercountry
             AND p.personnummer = r.ownerpersonnummer
             AND p.locationarea = r.fromarea
-            AND p.locationcountry = r.fromcountry
+            AND p.locationcountry = r.fromcountry)
 
     UNION
-        SELECT
+        (SELECT
             p.country,
             p.personnummer,
             p.locationcountry,
@@ -60,7 +60,7 @@ CREATE OR REPLACE VIEW NextMoves AS (
         WHERE  p.country = r.ownercountry
             AND p.personnummer = r.ownerpersonnummer
             AND p.locationarea = r.toarea
-            AND p.locationcountry = r.tocountry
+            AND p.locationcountry = r.tocountry))AS huehue
     GROUP BY country,
     personnummer,
     locationcountry,
