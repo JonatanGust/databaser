@@ -5,7 +5,7 @@ CREATE OR REPLACE VIEW NextMoves AS (
       locationarea,
       destcountry,
       destarea,
-      MIN(cost)
+      MIN(cost) AS cost
     FROM(
         (SELECT
             p.country,

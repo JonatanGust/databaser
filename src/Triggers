@@ -12,23 +12,23 @@ DECLARE
 BEGIN
   alreadyexisting :=(
     EXISTS(
-      SELECT ownerpersonnummer
+      (SELECT ownerpersonnummer
       FROM Roads
       WHERE tocountry = NEW.fromcountry
         AND toarea = NEW.fromarea
         AND fromcountry = NEW.tocountry
         AND fromarea = NEW.toarea
         AND ownercountry = NEW.ownercountry
-        AND ownerpersonnummer = NEW.ownerpersonnummer
+        AND ownerpersonnummer = NEW.ownerpersonnummer)
       UNION
-      SELECT ownerpersonnummer
+      (SELECT ownerpersonnummer
       FROM Roads
-      WHERE r.fromcountry = NEW.fromcountry
-        AND r.fromarea = NEW.fromarea
-        AND r.tocountry = NEW.tocountry
-        AND r.toarea = NEW.toarea
+      WHERE fromcountry = NEW.fromcountry
+        AND fromarea = NEW.fromarea
+        AND tocountry = NEW.tocountry
+        AND toarea = NEW.toarea
         AND ownercountry = NEW.ownercountry
-        AND ownerpersonnummer = NEW.ownerpersonnummer
+        AND ownerpersonnummer = NEW.ownerpersonnummer)
     )
   );
 
@@ -44,19 +44,19 @@ BEGIN
     END IF;
     ownerisatethierplace :=(
       EXISTS(
-        SELECT ownerpersonnummer
+        (SELECT personnummer
         FROM Persons
         WHERE locationcountry = NEW.fromcountry
           AND locationarea = NEW.fromarea
           AND country = NEW.ownercountry
-          AND personnummer = NEW.ownerpersonnummer
+          AND personnummer = NEW.ownerpersonnummer)
         UNION
-        SELECT ownerpersonnummer
+        (SELECT personnummer
         FROM Persons
         WHERE locationcountry = NEW.tocountry
           AND locationarea = NEW.toarea
           AND country = NEW.ownercountry
-          AND personnummer = NEW.ownerpersonnummer
+          AND personnummer = NEW.ownerpersonnummer)
       )
     );
 
@@ -75,14 +75,9 @@ BEGIN
       IF( NOT ownerhasmoney ) THEN
         RAISE EXCEPTION 'That person doesnt have enough money!';
       ELSE
-        theNewBudget :=(
-          SELECT budget
-          FROM Persons
-          WHERE NEW.ownercountry = country
-            AND NEW.ownerpersonnummer = personnummer
-        );
-
-        NEW.budget = theNewBudget - getval('roadprice');
+        UPDATE Persons SET budget = budget - getval('roadprice')
+        WHERE country = NEW.ownercountry
+              AND personnummer = NEW.ownerpersonnummer;
         RETURN NEW;
       END IF;
     END IF;
@@ -161,13 +156,14 @@ EXECUTE PROCEDURE is_road_update_ok();
 
 CREATE OR REPLACE FUNCTION update_person() RETURNS TRIGGER AS $$
 DECLARE
+  governmentUpdate BOOLEAN;
   okUpdateData BOOLEAN;
   isLegalMove BOOLEAN;
   moveCost NUMERIC;
   newLocationCity BOOLEAN;
-  visitBonus NUMERIC;
+  visitBonusSum NUMERIC;
   cityHasHotels BOOLEAN;
-  cityVisit NUMERIC;
+  cityVisitSum NUMERIC;
   numOfHotels NUMERIC;
   travellerHasHotel BOOLEAN;
   travellerHotelProfit NUMERIC;
@@ -176,16 +172,16 @@ DECLARE
 
 BEGIN
   --Dont update the government!
-  okUpdateData :=(OLD.country = ' '
-    AND OLD.personnummer = ' ');
-  if(okUpdateData) THEN
+  governmentUpdate :=(OLD.country = ' '
+                  AND OLD.personnummer = ' ');
+  if(governmentUpdate) THEN
     RAISE EXCEPTION 'Dont update the Government!';
   END IF;
   --We are not allowed to update the keys OR budget (but everything else?)
   okUpdateData :=(
     NEW.country = OLD.country
-      AND NEW.personnummer = OLD.personnummer
-      AND NEW.budget = OLD.budget
+    AND NEW.personnummer = OLD.personnummer
+    AND NEW.budget = OLD.budget
   );
   --If its okay to continue
   IF(NOT okUpdateData) THEN
@@ -203,14 +199,14 @@ BEGIN
     --Can the person reach the NEW.location from its OLD.location? (The possible ones exist in NextMoves)
     isLegalMove :=(
       EXISTS(
-        SELECT personnummer
-        FROM NextMoves
-        WHERE NEW.personnummer = personnummer
-          AND NEW.country = country
-          AND NEW.locationcountry = destcountry
-          AND NEW.locationarea = destarea
-          AND OLD.locationcountry = locationcountry
-          AND OLD.locationarea = locationarea
+          SELECT personnummer
+          FROM NextMoves AS nm
+          WHERE NEW.personnummer = nm.personnummer
+                AND NEW.country = nm.country
+                AND NEW.locationcountry = nm.destcountry
+                AND NEW.locationarea = nm.destarea
+                AND OLD.locationcountry = nm.locationcountry
+                AND OLD.locationarea = nm.locationarea
       )
     );
 
@@ -218,21 +214,21 @@ BEGIN
     IF(NOT isLegalMove) THEN
       RAISE EXCEPTION 'That person has no road connecting to that place!';
     ELSE
-
       --get the cost of that movement (should be fine if taken from NextMoves)
       moveCost :=(
-        SELECT cost
-        FROM NextMoves
-        WHERE NEW.personnummer = personnummer
-              AND NEW.country = country
-              AND NEW.locationcountry = destcountry
-              AND NEW.locationarea = destarea
-              AND OLD.locationcountry = locationcountry
-              AND OLD.locationarea = locationarea
+        COALESCE(
+            (SELECT cost
+             FROM NextMoves
+             WHERE NEW.personnummer = personnummer
+                   AND NEW.country = country
+                   AND NEW.locationcountry = destcountry
+                   AND NEW.locationarea = destarea
+                   AND OLD.locationcountry = locationcountry
+                   AND OLD.locationarea = locationarea) , 0)
       );
 
       --If we can afford to move
-      IF(moveCost > NEW.budget) THEN
+      IF(moveCost > OLD.budget) THEN
         RAISE EXCEPTION 'That person cant afford moving!';
       ELSE
 
@@ -242,9 +238,8 @@ BEGIN
         --Moved to innermost if, probably bad to update stuff when errors can occur
         --UPDATE Persons SET budget = budget - moveCost
         --WHERE NEW.personnummer = personnummer
-          --AND NEW.country = country;
+        --AND NEW.country = country;
         --END OLD
-
 
         --Is NEW.location a city?
         newLocationCity := (
@@ -253,40 +248,39 @@ BEGIN
 
         --If it was then do this else just do update (return NEW?)
         IF(NOT newlocationCity) THEN
-          NEW.budget = NEW.budget - moveCost;
+          NEW.budget = OLD.budget - moveCost;
           --End with saying NEW is okay
           RETURN NEW;
         ELSE
-
           --get the visit bonus of city
-          visitBonus :=(
-            SELECT visitbonus
-            FROM Cities
-            WHERE NEW.locationcountry = country
-                  AND NEW.locationarea = name
+          visitBonusSum :=(
+            COALESCE( (SELECT visitbonus
+                       FROM Cities
+                       WHERE NEW.locationcountry = country
+                             AND NEW.locationarea = name) , 0)
           );
           --if there was a bonus set it to 0
           --Moved to innermost if
           --IF(visitBonus > 0) THEN
-            --UPDATE Cities SET visitbonus = 0
-            --WHERE NEW.locationcountry = country
-                  --AND NEW.locationarea = name;
+          --UPDATE Cities SET visitbonus = 0
+          --WHERE NEW.locationcountry = country
+          --AND NEW.locationarea = name;
           --END IF;
 
           --any hotels in the city?
           cityHasHotels :=(
             EXISTS (
-              SELECT name
-              FROM hotels
-              WHERE locationcountry = NEW.locationcountry
-                AND locationarea = NEW.locationarea
+                SELECT name
+                FROM hotels
+                WHERE locationcountry = NEW.locationcountry
+                      AND locationarea = NEW.locationarea
             )
           );
 
           --Yes ^^
           IF(cityHasHotels) THEN
             --set cityVisit cost from constant & count hotels in town
-            cityVisit :=( getval('cityvisit') );
+            cityVisitSum :=( getval('cityvisit') );
             numOfHotels :=(
               SELECT COUNT(name)
               FROM Hotels
@@ -295,11 +289,12 @@ BEGIN
             );
           ELSE
             --No hotels = no cost, used in boolean expression
-            cityVisit :=(0);
+            numOfHotels :=(0);
+            cityVisitSum :=(0);
           END IF;
 
           --Make sure budget wont go below 0, perhaps no changes should be done if this isnt a thing?
-          IF( (NEW.budget + visitBonus) < (cityVisit + moveCost) ) THEN
+          IF( (OLD.budget + visitBonusSum) < (cityVisitSum + moveCost) ) THEN
             RAISE EXCEPTION 'That person cant afford staying in that city';
           ELSE
 
@@ -307,7 +302,7 @@ BEGIN
             --add an update for owner of traveled road (if self thatis allready 0 so useless addition but still valid)
 
             --if there was a bonus set it to 0
-            IF(visitBonus > 0) THEN
+            IF(visitBonusSum > 0) THEN
               UPDATE Cities SET visitbonus = 0
               WHERE NEW.locationcountry = country
                     AND NEW.locationarea = name;
@@ -318,48 +313,48 @@ BEGIN
 
               travellerHasHotel :=(
                 EXISTS(
-                  SELECT name
-                  FROM Hotels
-                  WHERE NEW.personummer = ownerpersonnummer
-                    AND NEW.country = ownercountry
-                    AND NEW.locationcountry = locationcountry
-                    AND NEW.locationarea = locationarea
+                    SELECT name
+                    FROM Hotels
+                    WHERE NEW.personummer = ownerpersonnummer
+                          AND NEW.country = ownercountry
+                          AND NEW.locationcountry = locationcountry
+                          AND NEW.locationarea = locationarea
                 )
               );
               IF(travellerHasHotel) THEN
-                travellerHotelProfit :=( cityVisit / numOfHotels );
-              ELSE
-                travellerHotelProfit :=( 0 );
+                travellerHotelProfit :=( cityVisitSum / numOfHotels );
               END IF;
-              UPDATE Persons AS p SET p.budget = p.budget + (cityVisit/numOfHotels)
+              UPDATE Persons AS p SET p.budget = p.budget + (cityVisitSum/numOfHotels)
               FROM Hotels h
               WHERE p.personnummer = h.ownerpersonnummer
                     AND p.country = h.ownercountry
                     AND NEW.locationcountry = h.locationcountry
                     AND NEW.locationarea = h.locationarea
-                --These two following ANDs are to ensure we dont overwrite NEW data
+                    --These two following ANDs are to ensure we dont overwrite NEW data
                     AND (NEW.personnummer != h.ownerpersonnummer
-                    AND NEW.country != h.ownercountry);
+                         AND NEW.country != h.ownercountry);
+            ELSE
+              travellerHotelProfit :=( 0 );
             END IF;
 
             --update budget of traveler
-            NEW.budget = NEW.budget + visitBonus - cityVisit - moveCost + travellerHotelProfit;
+            NEW.budget = OLD.budget + visitBonusSum - cityVisitSum - moveCost + travellerHotelProfit;
             --End with saying NEW is okay
             RETURN NEW;
           END IF;
         END IF;
-    END IF;
+      END IF;
 
 
-    --OLD
-    --om person har gått till city, och det finns hotels, dra bort getval(’cityvisit’) från budget (if-sats (3))
-    --dela upp getval(’cityvisit’) jämt mellan hotellägarna
-    --om det finns visitbonus, ge det till person (if-sats (4))
+      --OLD
+      --om person har gått till city, och det finns hotels, dra bort getval(’cityvisit’) från budget (if-sats (3))
+      --dela upp getval(’cityvisit’) jämt mellan hotellägarna
+      --om det finns visitbonus, ge det till person (if-sats (4))
 
-    --lägg till visitbonus till budget (UPDATE)
-    --nollställa visitbonus (UPDATE)
-    --Ny if-sats med att dra bort cityvisit från budget
-    --END OLD
+      --lägg till visitbonus till budget (UPDATE)
+      --nollställa visitbonus (UPDATE)
+      --Ny if-sats med att dra bort cityvisit från budget
+      --END OLD
 
 
     END IF;

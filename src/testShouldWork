@@ -1,16 +1,123 @@
 
---Test everything cept towns
+--"Test" every table test trigger no cost for building road as GOV.
 
 INSERT  INTO  Countries  VALUES(' ');
 INSERT  INTO  Countries  VALUES('Swe');
 INSERT  INTO  Areas  VALUES('Gbg', 'Swe', 491630);
 INSERT  INTO  Persons  VALUES(' ', ' ', 'The government', 'Swe', 'Gbg', 100000000000);
 INSERT INTO Cities VALUES( 'Gbg','Swe',0);
-INSERT INTO Hotels
+INSERT  INTO  Areas  VALUES('Sth', 'Swe', 491630*2);
+INSERT INTO Cities VALUES( 'Sth','Swe',0);
+INSERT INTO ROADS
+VALUES('Irl',
+       'Ath',
+       'Irl',
+       'Lim',
+       ' ',
+       ' ');
+
+--"Test" every table test trigger cost for building road as Person.
+
+INSERT  INTO  Countries  VALUES(' ');
+INSERT  INTO  Countries  VALUES('Swe');
+INSERT  INTO  Areas  VALUES('Gbg', 'Swe', 491630);
+INSERT  INTO  Persons  VALUES('Swe', '19940202-4820', 'Allan Klonenburg', 'Swe', 'Gbg', 1000000);
+INSERT INTO Cities VALUES( 'Gbg','Swe',0);
+INSERT  INTO  Areas  VALUES('Sth', 'Swe', 491630*2);
+INSERT INTO Cities VALUES( 'Sth','Swe',0);
+INSERT INTO ROADS
+VALUES('Swe',
+       'Gbg',
+       'Swe',
+       'Sth',
+       'Swe',
+       '19940202-4820');
 
 
 
-INSERT INTO Persons VALUES ('Swe', '199402024816', 'Allans klon', 'Swe', 'Gbg', 1000000);
+
+--Testing trigger person_update & func update_person() -- klart! ( roadtax i visit bonus 0 hotels)
+--SETUP
+INSERT  INTO  Countries  VALUES(' ');
+INSERT  INTO  Countries  VALUES('Swe');
+INSERT  INTO  Areas  VALUES('Gbg', 'Swe', 491630);
+INSERT  INTO  Persons  VALUES(' ', ' ', 'The government', 'Swe', 'Gbg', 100000000000);
+INSERT  INTO  Countries  VALUES('Irl');
+INSERT  INTO  Areas  VALUES('Ath', 'Irl', 491630);
+INSERT INTO Cities VALUES( 'Ath','Irl',0);
+INSERT  INTO  Areas  VALUES('Lim', 'Irl', 33529);
+INSERT INTO Cities VALUES( 'Lim','Irl',13.5);
+INSERT INTO ROADS
+VALUES('Irl',
+       'Ath',
+       'Irl',
+       'Lim',
+       ' ',
+       ' ');
+--END SETUP
+INSERT INTO Persons VALUES ('Swe', '19940202-4818', 'Allans klon 3', 'Irl', 'Ath', 1000000);
+UPDATE Persons SET locationarea = 'Lim'
+WHERE country = 'Swe' AND personnummer = '19940202-4818';
+
+
+
+
+
+
+
+
+
+--Testing trigger person_update & func update_person() -- klar (town = no visitbonus only roadtax)
+--SETUP
+INSERT  INTO  Countries  VALUES('Irl');
+INSERT  INTO  Areas  VALUES('Dub', 'Irl', 491630);
+INSERT INTO Cities VALUES( 'Dub','Irl',0);
+INSERT  INTO  Areas  VALUES('Gal', 'Irl', 33529);
+INSERT INTO Towns VALUES( 'Gal','Irl');
+INSERT INTO ROADS
+VALUES('Irl',
+       'Dub',
+       'Irl',
+       'Gal',
+       ' ',
+       ' ');
+--END SETUP
+INSERT INTO Persons VALUES ('Swe', '19940202-4817', 'Allans klon 2', 'Irl', 'Dub', 1000000);
+UPDATE Persons SET locationarea = 'Gal'
+WHERE country = 'Swe' AND personnummer = '19940202-4817';
+
+
+
+
+--Testing trigger hotel_insert -- klar
+    --SETUP
+INSERT  INTO  Countries  VALUES(' ');
+INSERT  INTO  Countries  VALUES('Swe');
+INSERT  INTO  Areas  VALUES('Gbg', 'Swe', 491630);
+INSERT  INTO  Persons  VALUES(' ', ' ', 'The government', 'Swe', 'Gbg', 100000000000);
+INSERT INTO Cities VALUES( 'Gbg','Swe',0);
+INSERT  INTO  Areas  VALUES('Sth', 'Swe', 491630*2);
+INSERT INTO Cities VALUES( 'Sth','Swe',0);
+    --END SETUP
+INSERT INTO Hotels VALUES('Hotel GBG', 'Swe', 'Gbg', 'Swe', '19940202-4816');
+--assert( SELECT budget FROM Persons WHERE country = 'Swe' AND personnummer = '19940202-4816' , 1000000 - getval('hotelprice') );
+
+--Testing trigger hotel
+    --Cant test this here, only fails if bad data, otherwise nothing
+
+--Testing trigger hotel_delete & func hotel_sold -- klar
+    --SETUP
+INSERT  INTO  Countries  VALUES(' ');
+INSERT  INTO  Countries  VALUES('Swe');
+INSERT  INTO  Areas  VALUES('Gbg', 'Swe', 491630);
+INSERT  INTO  Persons  VALUES(' ', ' ', 'The government', 'Swe', 'Gbg', 100000000000);
+INSERT INTO Cities VALUES( 'Gbg','Swe',0);
+INSERT  INTO  Areas  VALUES('Sth', 'Swe', 491630*2);
+INSERT INTO Cities VALUES( 'Sth','Swe',0);
+    --END SETUP
+INSERT INTO Persons VALUES ('Swe', '19940202-4816', 'Allans klon', 'Swe', 'Gbg', 1000000);
 INSERT INTO Hotels VALUES('Hotel GBG', 'Swe', 'Gbg', 'Swe', '19940202-4816');
 DELETE FROM Hotels WHERE ownercountry = 'Swe' AND ownerpersonnummer = '19940202-4816' AND locationcountry = 'Swe' AND locationarea = 'Gbg';
-assert( SELECT budget FROM Persons WHERE country = 'Swe' AND personnummer = '19940202-4816' , 1000000 - getval('hotelprice') + (getval('hotelprice')*getval('hotelrefund'));
+--assert( SELECT budget FROM Persons WHERE country = 'Swe' AND personnummer = '19940202-4816' , 1000000 - getval('hotelprice') + (getval('hotelprice')*getval('hotelrefund'));
+
+

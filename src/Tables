@@ -6,7 +6,7 @@ CREATE TABLE Countries (
 CREATE TABLE Areas(
   name TEXT NOT NULL,
   country TEXT NOT NULL,
-  population INT NOT NULL CHECK (population >= 0) DEFAULT (0),
+  population NUMERIC NOT NULL CHECK (population >= 0) DEFAULT (0),
   PRIMARY KEY (name, country),
   FOREIGN KEY (country) REFERENCES Countries(name) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -21,7 +21,7 @@ CREATE TABLE Towns (
 CREATE TABLE Cities (
   name TEXT NOT NULL ,
   country TEXT NOT NULL ,
-  visitbonus int NOT NULL CHECK (visitbonus >= 0) DEFAULT (0),
+  visitbonus NUMERIC NOT NULL CHECK (visitbonus >= 0) DEFAULT (0),
   PRIMARY KEY (name, country),
   FOREIGN KEY (name, country) REFERENCES Areas (name, country) ON DELETE CASCADE ON UPDATE CASCADE
 );
