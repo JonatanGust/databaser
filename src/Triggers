@@ -7,6 +7,8 @@ DECLARE
   alreadyexisting BOOLEAN;
   ownerisatethierplace BOOLEAN;
   ownerhasmoney BOOLEAN;
+  isGovernmentRoad BOOLEAN;
+  theNewBudget NUMERIC;
 BEGIN
   alreadyexisting :=(
     EXISTS(
@@ -33,6 +35,13 @@ BEGIN
   If (alreadyexisting) THEN
     RAISE EXCEPTION 'Road already exist with the same owner';
   ELSE
+    isGovernmentRoad :=(
+      NEW.ownercountry = ' '
+      AND NEW.ownerpersonnummer = ' '
+    );
+    if(isGovernmentRoad)THEN
+      RETURN NEW;
+    END IF;
     ownerisatethierplace :=(
       EXISTS(
         SELECT ownerpersonnummer
@@ -51,7 +60,9 @@ BEGIN
       )
     );
 
-    IF(ownerisatethierplace) THEN
+    IF(NOT ownerisatethierplace) THEN
+      RAISE EXCEPTION 'That person isnt located in ether of those cities!';
+    ELSE
       ownerhasmoney :=(
         (SELECT budget
         FROM Persons
@@ -61,16 +72,19 @@ BEGIN
         getval('roadprice')
       );
 
-      IF( ownerhasmoney ) THEN
-        UPDATE Persons SET budget = budget - getval('roadprice')
-        WHERE NEW.ownercountry = country
-          AND NEW.ownerpersonnummer = personnummer;
-        RETURN NEW;
+      IF( NOT ownerhasmoney ) THEN
+        RAISE EXCEPTION 'That person doesnt have enough money!';
       ELSE
-          RAISE EXCEPTION 'That person doesnt have enough money!';
+        theNewBudget :=(
+          SELECT budget
+          FROM Persons
+          WHERE NEW.ownercountry = country
+            AND NEW.ownerpersonnummer = personnummer
+        );
+
+        NEW.budget = theNewBudget - getval('roadprice');
+        RETURN NEW;
       END IF;
-    ELSE
-      RAISE EXCEPTION 'That person isnt located in ether of those cities!';
     END IF;
   END IF;
 END
@@ -83,120 +97,18 @@ CREATE TRIGGER TryInsertNewRoad BEFORE INSERT ON Roads
 FOR EACH ROW
 WHEN (pg_trigger_depth() < 1)
 EXECUTE PROCEDURE check_road_insert_ok();
-------------------- SHOULD FAIL BEGIN BEHÖVER SKRIVAS ORDENTLIGT
-INSERT INTO Roads
-VALUES(
-  'Rus',
-  'San',
-  'Fin',
-  'Hel',
-  'Swe',
-  '19960708-2667',
-  111);
------------------- SHOULD FAIL END
 
 
-/*
-CREATE OR REPLACE FUNCTION road_deletion() RETURNS TRIGGER AS $$
-DECLARE
-  existingasis BOOLEAN;
-  existingasreverse BOOLEAN;
-BEGIN
-  existingasis :=(
-    (SELECT COUNT(p.country)
-     FROM Roads r , Persons p
-     WHERE r.fromcountry = OLD.fromcountry
-           AND r.fromarea = OLD.fromarea
-           AND r.tocountry = OLD.tocountry
-           AND r.toarea = OLD.toarea
-           AND NEW.ownercountry = country
-           AND NEW.ownerpersonnummer = personnummer
-    ) NOTNULL );
-  existingasreverse :=(
-    (SELECT COUNT(p.country)
-     FROM Roads r , Persons p
-     WHERE r.tocountry = NEW.fromcountry
-           AND r.toarea = NEW.fromarea
-           AND r.fromcountry = NEW.tocountry
-           AND r.fromarea = NEW.toarea
-           AND NEW.ownercountry = country
-           AND NEW.ownerpersonnummer = personnummer
-    ) NOTNULL );
-
-  IF (existingasis) THEN
-    DELETE
-    FROM Roads r
-    WHERE r.fromcountry = NEW.fromcountry
-          AND r.fromarea = NEW.fromarea
-          AND r.tocountry = NEW.tocountry
-          AND r.toarea = NEW.toarea
-          AND NEW.ownercountry = r.country
-          AND NEW.ownerpersonnummer = r.personnummer;
-
-  ELSEIF(exsistingasreverse) THEN
-    DELETE
-    FROM Roads r
-    WHERE r.tocountry = NEW.fromcountry
-          AND r.toarea = NEW.fromarea
-          AND r.fromcountry = NEW.tocountry
-          AND r.fromarea = NEW.toarea
-          AND NEW.ownercountry = r.country
-          AND NEW.ownerpersonnummer = r.personnummer;
-
-  ELSE
-    RAISE EXCEPTION 'No such road exist';
-  END IF;
-END;
-$$ LANGUAGE 'plpgsql';
-*/
 
 
-/*CREATE OR REPLACE FUNCTION road_deletion() RETURNS TRIGGER AS $$
-DECLARE
-  existingasreverse BOOLEAN;
-BEGIN
-  existingasreverse :=(
-    (SELECT COUNT(ownercountry)
-     FROM Roads
-     WHERE r.tocountry = OLD.fromcountry
-           AND r.toarea = OLD.fromarea
-           AND r.fromcountry = OLD.tocountry
-           AND r.fromarea = OLD.toarea
-           AND OLD.ownercountry = r.ownercountry
-           AND OLD.ownerpersonnummer = r.ownerpersonnummer
-    ) NOTNULL );
-
-  IF(exsistingasreverse) THEN
-    DELETE
-    FROM Roads
-    WHERE tocountry = OLD.fromcountry
-          AND toarea = OLD.fromarea
-          AND fromcountry = OLD.tocountry
-          AND fromarea = OLD.toarea
-          AND OLD.ownercountry = ownercountry
-          AND OLD.ownerpersonnummer = ownerpersonnummer;
-  END IF;
-  RETURN NULL;
-END;
-$$ LANGUAGE 'plpgsql';
-
-
-DROP TRIGGER IF EXISTS delete_road ON Roads;
-
-CREATE TRIGGER delete_road BEFORE DELETE ON Roads
-FOR EACH ROW
-WHEN (pg_trigger_depth() < 1)
-EXECUTE PROCEDURE road_deletion();*/
-
-
-DELETE
-FROM Roads
-WHERE (fromcountry = 'Rus' OR fromcountry = 'Fin' )
-      AND (fromarea = 'San' OR fromarea = 'Hel')
-      AND (tocountry = 'Fin' OR tocountry = 'Rus' )
-      AND (toarea = 'Hel' OR toarea = 'San')
-      AND ownercountry = 'Swe'
-      AND ownerpersonnummer = '199607082667';
+--DELETE
+--FROM Roads
+--WHERE (fromcountry = 'Rus' OR fromcountry = 'Fin' )
+--      AND (fromarea = 'San' OR fromarea = 'Hel')
+--      AND (tocountry = 'Fin' OR tocountry = 'Rus' )
+--      AND (toarea = 'Hel' OR toarea = 'San')
+--      AND ownercountry = 'Swe'
+--      AND ownerpersonnummer = '199607082667';
 
 
 
@@ -251,16 +163,24 @@ CREATE OR REPLACE FUNCTION update_person() RETURNS TRIGGER AS $$
 DECLARE
   okUpdateData BOOLEAN;
   isLegalMove BOOLEAN;
-  moveCost INT;
+  moveCost NUMERIC;
   newLocationCity BOOLEAN;
-  visitBonus INT;
+  visitBonus NUMERIC;
   cityHasHotels BOOLEAN;
-  cityVisit INT;
-  numOfHotels INT;
+  cityVisit NUMERIC;
+  numOfHotels NUMERIC;
+  travellerHasHotel BOOLEAN;
+  travellerHotelProfit NUMERIC;
+  newBudgetData NUMERIC;
 
 
 BEGIN
-
+  --Dont update the government!
+  okUpdateData :=(OLD.country = ' '
+    AND OLD.personnummer = ' ');
+  if(okUpdateData) THEN
+    RAISE EXCEPTION 'Dont update the Government!';
+  END IF;
   --We are not allowed to update the keys OR budget (but everything else?)
   okUpdateData :=(
     NEW.country = OLD.country
@@ -290,7 +210,7 @@ BEGIN
           AND NEW.locationcountry = destcountry
           AND NEW.locationarea = destarea
           AND OLD.locationcountry = locationcountry
-          AND OLD.locationare = locationarea
+          AND OLD.locationarea = locationarea
       )
     );
 
@@ -308,7 +228,7 @@ BEGIN
               AND NEW.locationcountry = destcountry
               AND NEW.locationarea = destarea
               AND OLD.locationcountry = locationcountry
-              AND OLD.locationare = locationarea
+              AND OLD.locationarea = locationarea
       );
 
       --If we can afford to move
@@ -332,7 +252,10 @@ BEGIN
         );
 
         --If it was then do this else just do update (return NEW?)
-        IF(newlocationCity) THEN
+        IF(NOT newlocationCity) THEN
+          --End with saying NEW is okay
+          RETURN NEW;
+        ELSE
 
           --get the visit bonus of city
           visitBonus :=(
@@ -381,9 +304,6 @@ BEGIN
 
             --No money to the owner of road?
             --add an update for owner of traveled road (if self thatis allready 0 so useless addition but still valid)
-            UPDATE Persons SET budget = budget - moveCost
-            WHERE NEW.personnummer = personnummer
-                  AND NEW.country = country;
 
             --if there was a bonus set it to 0
             IF(visitBonus > 0) THEN
@@ -392,26 +312,40 @@ BEGIN
                     AND NEW.locationarea = name;
             END IF;
 
-            --update budget of traveler
-            UPDATE Persons SET budget = budget + visitBonus - cityVisit
-            WHERE NEW.personnummer = personnummer
-                  AND NEW.country = country;
-
             --update budget of hotel owners  CAN YOU DO THIS?!?!?!
             IF(numOfHotels > 0) THEN
+
+              travellerHasHotel :=(
+                EXISTS(
+                  SELECT name
+                  FROM Hotels
+                  WHERE NEW.personummer = ownerpersonnummer
+                    AND NEW.country = ownercountry
+                    AND NEW.locationcountry = locationcountry
+                    AND NEW.locationarea = locationarea
+                )
+              );
+              IF(travellerHasHotel) THEN
+                travellerHotelProfit :=( cityVisit / numOfHotels );
+              ELSE
+                travellerHotelProfit :=( 0 );
+              END IF;
               UPDATE Persons AS p SET p.budget = p.budget + (cityVisit/numOfHotels)
               FROM Hotels h
               WHERE p.personnummer = h.ownerpersonnummer
                     AND p.country = h.ownercountry
                     AND NEW.locationcountry = h.locationcountry
-                    AND NEW.locationarea = h.locationarea;
+                    AND NEW.locationarea = h.locationarea
+                --These two following ANDs are to ensure we dont overwrite NEW data
+                    AND (NEW.personnummer != h.ownerpersonnummer
+                    AND NEW.country != h.ownercountry);
             END IF;
+
+            --update budget of traveler
+            NEW.budget = NEW.budget + visitBonus - cityVisit - moveCost + travellerHotelProfit;
             --End with saying NEW is okay
             RETURN NEW;
           END IF;
-        ELSE
-          --End with saying NEW is okay
-          RETURN NEW;
         END IF;
     END IF;
 
@@ -480,7 +414,7 @@ BEGIN
       SELECT ownerpersonnummer
       FROM Hotels
       WHERE locationcountry = NEW.locationcountry
-        AND locationare = NEW.locationare
+        AND locationarea = NEW.locationarea
         AND ownercountry = NEW.ownercountry
         AND ownerpersonnummer = NEW.ownerpersonnummer
     )
@@ -529,7 +463,7 @@ BEGIN
         SELECT ownerpersonnummer
         FROM Hotels
         WHERE locationcountry = NEW.locationcountry
-              AND locationare = NEW.locationare
+              AND locationarea = NEW.locationarea
               AND ownercountry = NEW.ownercountry
               AND ownerpersonnummer = NEW.ownerpersonnummer
     )
@@ -539,7 +473,7 @@ BEGIN
   ELSE
     onlyownerchanged :=(
       OLD.locationcountry = NEW.locationcountry
-      AND OLD.locationare = NEW.locationare
+      AND OLD.locationarea = NEW.locationarea
       AND OLD.name = NEW.name
     );
 

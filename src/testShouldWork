@@ -6,9 +6,11 @@ INSERT  INTO  Countries  VALUES('Swe');
 INSERT  INTO  Areas  VALUES('Gbg', 'Swe', 491630);
 INSERT  INTO  Persons  VALUES(' ', ' ', 'The government', 'Swe', 'Gbg', 100000000000);
 INSERT INTO Cities VALUES( 'Gbg','Swe',0);
+INSERT INTO Hotels
 
 
-INSERT INTO Persons VALUES ('Swe', '199402024816', 'Allans klon', 'Swe', 'Gbg', 10000);
-INSERT HOTEL som ^person äger;
-DELETE HOTEL ^;
-ASSERT ^Person budget = XXXXX - (getval('hotelprice')*getval('hotelrefund'));
+
+INSERT INTO Persons VALUES ('Swe', '199402024816', 'Allans klon', 'Swe', 'Gbg', 1000000);
+INSERT INTO Hotels VALUES('Hotel GBG', 'Swe', 'Gbg', 'Swe', '19940202-4816');
+DELETE FROM Hotels WHERE ownercountry = 'Swe' AND ownerpersonnummer = '19940202-4816' AND locationcountry = 'Swe' AND locationarea = 'Gbg';
+assert( SELECT budget FROM Persons WHERE country = 'Swe' AND personnummer = '19940202-4816' , 1000000 - getval('hotelprice') + (getval('hotelprice')*getval('hotelrefund'));
