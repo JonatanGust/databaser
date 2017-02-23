@@ -1,12 +1,12 @@
 
 CREATE TABLE Countries (
-  name TEXT PRIMARY KEY
+  name TEXT NOT NULL PRIMARY KEY
 );
 
 CREATE TABLE Areas(
   name TEXT NOT NULL,
   country TEXT NOT NULL,
-  population int NOT NULL CHECK (population >= 0),
+  population INT NOT NULL CHECK (population >= 0) DEFAULT VALUE (0),
   PRIMARY KEY (name, country),
   FOREIGN KEY (country) REFERENCES Countries(name)
 );
@@ -21,7 +21,7 @@ CREATE TABLE Towns (
 CREATE TABLE Cities (
   name TEXT NOT NULL ,
   country TEXT NOT NULL ,
-  visitbonus int NOT NULL CHECK (visitbonus >= 0),
+  visitbonus int NOT NULL CHECK (visitbonus >= 0) DEFAULT VALUE (0),
   PRIMARY KEY (name, country),
   FOREIGN KEY (name, country) REFERENCES Areas (name, country)
 );
@@ -32,7 +32,7 @@ CREATE TABLE Persons (
   name TEXT NOT NULL,
   locationcountry TEXT NOT NULL,
   locationarea TEXT NOT NULL,
-  budget NUMERIC NOT NULL CHECK (budget >= 0),
+  budget NUMERIC NOT NULL CHECK (budget >= 0) DEFAULT VALUE (0),
   PRIMARY KEY (country, personnummer),
   FOREIGN KEY (country) REFERENCES Countries(name),
   FOREIGN KEY (locationcountry, locationarea) REFERENCES Areas(country, name)
@@ -56,7 +56,7 @@ CREATE TABLE Roads (
   toarea TEXT NOT NULL,
   ownercountry TEXT NOT NULL,
   ownerpersonnummer CHAR(13) CHECK(ownerpersonnummer ~ '[0-9]{8}-[0-9]{4}' OR ownerpersonnummer ~ ' ') ,
-  roadtax NUMERIC NOT NULL  CHECK (roadtax >= 0),
+  roadtax NUMERIC NOT NULL  CHECK (roadtax >= 0) DEFAULT (getval('roadtax')),
   PRIMARY KEY (fromcountry, fromarea, tocountry, toarea, ownercountry, ownerpersonnummer),
   FOREIGN KEY (ownercountry, ownerpersonnummer) REFERENCES Persons(country, personnummer),
   FOREIGN KEY (fromcountry, fromarea) REFERENCES Areas(country, name),
