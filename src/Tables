@@ -6,24 +6,24 @@ CREATE TABLE Countries (
 CREATE TABLE Areas(
   name TEXT NOT NULL,
   country TEXT NOT NULL,
-  population INT NOT NULL CHECK (population >= 0) DEFAULT VALUE (0),
+  population INT NOT NULL CHECK (population >= 0) DEFAULT (0),
   PRIMARY KEY (name, country),
-  FOREIGN KEY (country) REFERENCES Countries(name)
+  FOREIGN KEY (country) REFERENCES Countries(name) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE Towns (
   name TEXT NOT NULL ,
   country TEXT NOT NULL ,
   PRIMARY KEY (name, country),
-  FOREIGN KEY (name, country) REFERENCES Areas (name, country)
+  FOREIGN KEY (name, country) REFERENCES Areas (name, country) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE Cities (
   name TEXT NOT NULL ,
   country TEXT NOT NULL ,
-  visitbonus int NOT NULL CHECK (visitbonus >= 0) DEFAULT VALUE (0),
+  visitbonus int NOT NULL CHECK (visitbonus >= 0) DEFAULT (0),
   PRIMARY KEY (name, country),
-  FOREIGN KEY (name, country) REFERENCES Areas (name, country)
+  FOREIGN KEY (name, country) REFERENCES Areas (name, country) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE Persons (
@@ -32,9 +32,9 @@ CREATE TABLE Persons (
   name TEXT NOT NULL,
   locationcountry TEXT NOT NULL,
   locationarea TEXT NOT NULL,
-  budget NUMERIC NOT NULL CHECK (budget >= 0) DEFAULT VALUE (0),
+  budget NUMERIC NOT NULL CHECK (budget >= 0) DEFAULT (0),
   PRIMARY KEY (country, personnummer),
-  FOREIGN KEY (country) REFERENCES Countries(name),
+  FOREIGN KEY (country) REFERENCES Countries(name) ON DELETE CASCADE ON UPDATE CASCADE ,
   FOREIGN KEY (locationcountry, locationarea) REFERENCES Areas(country, name)
 );
 
@@ -45,8 +45,8 @@ CREATE TABLE Hotels (
   ownercountry TEXT NOT NULL,
   ownerpersonnummer CHAR(13) CHECK(ownerpersonnummer ~ '[0-9]{8}-[0-9]{4}' OR ownerpersonnummer ~ ' ') ,
   PRIMARY KEY (locationcountry, locationarea, ownercountry, ownerpersonnummer),
-  FOREIGN KEY (ownercountry, ownerpersonnummer) REFERENCES Persons(country, personnummer),
-  FOREIGN KEY (locationcountry, locationarea) REFERENCES Cities(country, name)
+  FOREIGN KEY (ownercountry, ownerpersonnummer) REFERENCES Persons(country, personnummer)ON DELETE CASCADE ON UPDATE CASCADE ,
+  FOREIGN KEY (locationcountry, locationarea) REFERENCES Cities(country, name)ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE Roads (
@@ -58,9 +58,9 @@ CREATE TABLE Roads (
   ownerpersonnummer CHAR(13) CHECK(ownerpersonnummer ~ '[0-9]{8}-[0-9]{4}' OR ownerpersonnummer ~ ' ') ,
   roadtax NUMERIC NOT NULL  CHECK (roadtax >= 0) DEFAULT (getval('roadtax')),
   PRIMARY KEY (fromcountry, fromarea, tocountry, toarea, ownercountry, ownerpersonnummer),
-  FOREIGN KEY (ownercountry, ownerpersonnummer) REFERENCES Persons(country, personnummer),
-  FOREIGN KEY (fromcountry, fromarea) REFERENCES Areas(country, name),
-  FOREIGN KEY (tocountry, toarea) REFERENCES Areas(country, name)
+  FOREIGN KEY (ownercountry, ownerpersonnummer) REFERENCES Persons(country, personnummer)ON DELETE CASCADE ON UPDATE CASCADE ,
+  FOREIGN KEY (fromcountry, fromarea) REFERENCES Areas(country, name)ON DELETE CASCADE ON UPDATE CASCADE ,
+  FOREIGN KEY (tocountry, toarea) REFERENCES Areas(country, name)ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 INSERT  INTO  Countries  VALUES(' ');

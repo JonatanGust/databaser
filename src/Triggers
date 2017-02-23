@@ -253,6 +253,7 @@ BEGIN
 
         --If it was then do this else just do update (return NEW?)
         IF(NOT newlocationCity) THEN
+          NEW.budget = NEW.budget - moveCost;
           --End with saying NEW is okay
           RETURN NEW;
         ELSE
@@ -504,6 +505,7 @@ BEGIN
   UPDATE Persons SET budget = budget + (getval('hotelprice')*getval('hotelrefund'))
   WHERE OLD.ownercountry = country
     AND OLD.ownerpersonnummer = personnummer;
+  RETURN NEW;
 END;
 $$ LANGUAGE 'plpgsql';
 
