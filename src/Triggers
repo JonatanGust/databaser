@@ -486,7 +486,7 @@ BEGIN
     )
   );
   IF(ownerallreadyintown) THEN
-    RAISE EXCEPTION 'That person allready has a hotel in that city';
+    RAISE EXCEPTION 'That person already has a hotel in that city';
   ELSE
     ownerhasmoney :=(
       (SELECT budget
@@ -535,7 +535,7 @@ BEGIN
     )
   );
   IF(ownerallreadyintown) THEN
-    RAISE EXCEPTION 'That person allready has an hotel in that city';
+    RAISE EXCEPTION 'That person already has an hotel in that city';
   ELSE
     onlyownerchanged :=(
       OLD.locationcountry = NEW.locationcountry

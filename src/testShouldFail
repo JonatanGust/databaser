@@ -1,0 +1,76 @@
+
+
+
+-- Test of Hotel Update when the person already has an hotel in that city --
+
+INSERT INTO Countries
+VALUES('Den');
+
+INSERT INTO Areas
+VALUES('Kob','Den',2000000);
+INSERT INTO Cities
+VALUES('Kob','Den',0);
+
+INSERT INTO Persons
+VALUES('Den',
+       '19960708-2670',
+       'Therese CloneHU',
+       'Den',
+       'Kob',
+       150000 );
+
+INSERT INTO Hotels
+VALUES('Hotel KobenClone',
+      'Den',
+      'Kob',
+      'Den',
+      '19960708-2670');
+
+INSERT INTO Hotels
+VALUES('The KobClone Hotel',
+      'Den',
+      'Kob',
+      'Den',
+      '19960708-2670');
+
+
+
+-- Test of Hotel Update where only the owner of an hotel can be changed--
+
+INSERT INTO Countries
+VALUES('Fin');
+
+INSERT INTO Areas
+VALUES('Hel','Fin',2000000);
+INSERT INTO Cities
+VALUES('Hel','Fin',0);
+
+INSERT INTO Areas
+VALUES('Esbo','Fin',2000000);
+INSERT INTO Cities
+VALUES('Esbo','Fin',0);
+
+INSERT INTO Persons
+VALUES('Fin',
+       '19960708-2664',
+       'Theodor Sturesson clone',
+       'Fin',
+       'Hel',
+       150000 );
+
+INSERT INTO Hotels
+VALUES('Hotel in Finland',
+      'Fin',
+      'Hel',
+      'Fin',
+      '19960708-2664');
+
+UPDATE Hotels SET ('Hotel in Finland','Fin','Hel','Fin','19960708-2664')
+WHERE ( locationcountry = 'Fin',
+        locationarea = 'Esbo',
+        ownercountry = 'Fin',
+        ownerpersonnummer = '19960708-2664');
+
+
+-- Test of Hotel Delete --
+
