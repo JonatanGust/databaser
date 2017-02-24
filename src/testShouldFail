@@ -1,5 +1,5 @@
 
--- Test of Person that you should not update the Government --
+-- Test of Person that you should not update the Government -- KLAR!!
 
 INSERT INTO Countries
 VALUES('Swe');
@@ -10,17 +10,17 @@ INSERT INTO Cities
 VALUES('Gbg','Swe',0);
 
 INSERT  INTO  Persons
-VALUES(' ', ' ', 'The government', 'Swe', 'Gbg', 100000000000);
+VALUES(' ',' ','The government','Swe','Gbg',100000000000);
 
-UPDATE Persons SET (' ', ' ', 'The government', 'Swe', 'Gbg', 100000000000)
-WHERE ( country = ' ',
-        personnummer = '19950403-1990',
-        name = 'The government',
-        locationcountry = 'Swe'
-        locationarea = 'Gbg',
-        budget = 100000000000);
+UPDATE Persons SET country = ' ', personnummer = '19950403-1990', name = 'The government', locationcountry = 'Swe', locationarea = 'Gbg', budget = 100000000000
+WHERE country = ' '
+  AND personnummer = ' '
+  AND name = 'The government'
+  AND locationcountry = 'Swe'
+  AND locationarea = 'Gbg'
+  AND budget = 100000000000;
 
--- Test of Person that you are not allowed to update the country or personnummer of a person --
+-- Test of Person that you are not allowed to update the country or personnummer of a person -- KLAR!!
 
 INSERT INTO Countries
 VALUES('Swe');
@@ -31,53 +31,43 @@ INSERT INTO Cities
 VALUES('Gbg','Swe',0);
 
 INSERT INTO Persons
-VALUES('Swe',
-       '19960708-2600',
-       'Theo Clone',
-       'Swe',
-       'Gbg',
-       150000 );
+VALUES('Swe','19960708-2600','Theo Clone','Swe','Gbg',150000 );
 
-UPDATE Persons SET ('Swe','19960708-2600','Theo Clone','Swe','Gbg',150000)
-WHERE ( country = 'Swe',
-        personnummer = '19960708-0000',
-        name = 'Theo Clone',
-        locationcountry = 'Swe'
-        locationarea = 'Gbg',
-        budget = 150000);
+UPDATE Persons SET country = 'Swe', personnummer = '19960708-0000', name = 'Theo Clone', locationcountry = 'Swe', locationarea = 'Gbg', budget = 150000
+WHERE country = 'Swe'
+  AND personnummer = '19960708-2600'
+  AND name = 'Theo Clone'
+  AND locationcountry = 'Swe'
+  AND locationarea = 'Gbg'
+  AND budget = 150000;
 
--- Test of Person that person has no road connecting to that place --
+-- Test of Person that person has no road connecting to that place -- KLAR!!
 
 INSERT INTO Countries
 VALUES('Rus');
 
 INSERT INTO Areas
-VALUES('Mos','Rus',30000);
-INSERT INTO Towns
-VALUES('Mos','Rus');
+VALUES('Mos','Rus',7000000);
+INSERT INTO Cities
+VALUES('Mos','Rus',0);
 
 INSERT INTO Areas
-VALUES('San','Rus',500000);
+VALUES('San','Rus',2000000);
 INSERT INTO Cities
 VALUES('San','Rus',0);
 
 INSERT INTO Persons
-VALUES('Rus',
-       '19940202-7777',
-       'Hanna Cloneish',
-       'Rus',
-       'Mos',
-       150000);
+VALUES('Rus','19940202-7777','Hanna Cloneish','Rus','Mos',150000);
 
-UPDATE Persons SET ('Rus','19940202-7777','Hanna Cloneish','Rus','Mos',150000)
-WHERE ( country = 'Rus',
-        personnummer = '19940202-7777',
-        name = 'Hanna Cloneish',
-        locationcountry = 'Rus'
-        locationarea = 'San',
-        budget = 150000);
+UPDATE Persons SET country = 'Rus', personnummer = '19940202-7777', name = 'Hanna Cloneish', locationcountry = 'San', locationarea = 'Mos', budget = 150000
+WHERE country = 'Rus'
+  AND personnummer = '19940202-7777'
+  And name = 'Hanna Cloneish'
+  AND locationcountry = 'Rus'
+  AND locationarea = 'Mos'
+  AND budget = 150000;
 
--- Test of Person that person cant afford moving --
+-- Test of Person that person cant afford moving -- KLAR!!
 
 INSERT INTO Countries
 VALUES('Den');
@@ -108,7 +98,7 @@ VALUES('Den',
        'Ros',
        150000);
 
-INSERT INTO ROADS
+INSERT INTO Roads
 VALUES('Den',
        'Jyl',
        'Den',
@@ -117,15 +107,15 @@ VALUES('Den',
        '19940202-4444',
        111);
 
-UPDATE Persons SET ('Den','19940202-3333','John Clonesson','Den','Jyl',5)
-WHERE ( country = 'Den',
-        personnummer = '19940202-3333',
-        name = 'John Clonesson',
-        locationcountry = 'Den'
-        locationarea = 'Ros',
-        budget = 5);
+UPDATE Persons SET country = 'Den', personnummer = '19940202-3333', name = 'John Clonesson', locationcountry = 'Den', locationarea = 'Ros', budget = 5
+WHERE country = 'Den'
+  AND personnummer = '19940202-3333'
+  AND name = 'John Clonesson'
+  AND locationcountry = 'Den'
+  AND locationarea = 'Jyl'
+  AND budget = 5;
 
--- Test of Person that person cant afford staying in that city --
+-- Test of Person that person cant afford staying in that city -- FUNKAR INTE!!
 
 INSERT INTO Countries
 VALUES('Den');
@@ -135,15 +125,48 @@ VALUES('Ros','Den',500000);
 INSERT INTO Cities
 VALUES('Ros','Den',0);
 
+INSERT INTO Areas
+VALUES('Kob','Den',500000);
+INSERT INTO Cities
+VALUES('Kob','Den',0);
+
 INSERT INTO Persons
 VALUES('Den',
-       '19940202-4815',
-       'Jonathan Clonesson',
+       '19940202-9999',
+       'Than Clones',
+       'Den',
+       'Kob',
+       150000 );
+
+INSERT INTO Roads
+VALUES('Den',
+       'Ros',
+       'Den',
+       'Kob',
+       'Den',
+       '19940202-9999',
+       1);
+
+INSERT INTO Persons
+VALUES('Den',
+       '19960708-8888',
+       'Thera Cloone',
        'Den',
        'Ros',
-       150 );
+       10 );
 
--- Test of Hotel Insert when the person already has an hotel in that city --
+UPDATE Persons SET country = 'Den', personnummer = '19960708-8888', name = 'Thera Cloone', locationcountry = 'Den', locationarea = 'Kob', budget = 10
+WHERE country = 'Den'
+  AND personnummer = '19990708-8888'
+  AND name = 'Thera Cloone'
+  AND locationcountry = 'Den'
+  AND locationarea = 'Ros'
+  AND budget = 10;
+
+--DELETE FROM Persons
+--WHERE country ='Den' AND personnummer ='19940202-4815'
+
+-- Test of Hotel Insert when the person already has an hotel in that city -- KLAR!!
 
 INSERT INTO Countries
 VALUES('Den');
@@ -175,7 +198,7 @@ VALUES('The KobClone Hotel',
       'Den',
       '19960708-2670')
 
--- Test of Hotel Insert that person does'nt have enough money
+-- Test of Hotel Insert that person does'nt have enough money -- KLAR!!
 
 INSERT INTO Countries
 VALUES('Nor');
@@ -210,7 +233,7 @@ VALUES('Hotel in Oslo',
 -- This test is already done in the test of hotel update
 
 
--- Test of Hotel Update where only the owner of an hotel can be changed--
+-- Test of Hotel Update where only the owner of an hotel can be changed-- KLAR!!
 
 INSERT INTO Countries
 VALUES('Fin');
@@ -240,8 +263,8 @@ VALUES('Hotel in Finland',
       'Fin',
       '19960708-2664');
 
-UPDATE Hotels SET ('Hotel in Finland','Fin','Hel','Fin','19960708-2664')
-WHERE ( locationcountry = 'Fin',
-        locationarea = 'Esbo',
-        ownercountry = 'Fin',
-        ownerpersonnummer = '19960708-2664');
+UPDATE Hotels SET name = 'Hotel in Finland', locationcountry = 'Fin', locationarea = 'Esbo', ownercountry = 'Fin', ownerpersonnummer = '19960708-2664'
+WHERE ( locationcountry = 'Fin'
+    AND locationarea = 'Hel'
+    AND ownercountry = 'Fin'
+    AND ownerpersonnummer = '19960708-2664');
