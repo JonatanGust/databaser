@@ -222,7 +222,7 @@ VALUES('Hotel in Oslo',
       'Nor',
       'Bergen',
       'Nor',
-      '19960708-3664')
+      '19960708-3664');
 
 -- Test of Hotel Update when the person already has an hotel in that city --
 
