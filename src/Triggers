@@ -292,9 +292,23 @@ BEGIN
             numOfHotels :=(0);
             cityVisitSum :=(0);
           END IF;
-
+          travellerHasHotel :=(
+            EXISTS(
+                SELECT name
+                FROM Hotels
+                WHERE NEW.personnummer = ownerpersonnummer
+                      AND NEW.country = ownercountry
+                      AND NEW.locationcountry = locationcountry
+                      AND NEW.locationarea = locationarea
+            )
+          );
+          IF(travellerHasHotel) THEN
+            travellerHotelProfit :=( cityVisitSum / numOfHotels );
+          ELSE
+            travellerHotelProfit :=( 0 );
+          END IF;
           --Make sure budget wont go below 0, perhaps no changes should be done if this isnt a thing?
-          IF( (OLD.budget + visitBonusSum) < (cityVisitSum + moveCost) ) THEN
+          IF( (OLD.budget + visitBonusSum + travellerHotelProfit) < (cityVisitSum + moveCost) ) THEN
             RAISE EXCEPTION 'That person cant afford staying in that city';
           ELSE
 
@@ -311,19 +325,7 @@ BEGIN
             --update budget of hotel owners  CAN YOU DO THIS?!?!?!
             IF(numOfHotels > 0) THEN
 
-              travellerHasHotel :=(
-                EXISTS(
-                    SELECT name
-                    FROM Hotels
-                    WHERE NEW.personummer = ownerpersonnummer
-                          AND NEW.country = ownercountry
-                          AND NEW.locationcountry = locationcountry
-                          AND NEW.locationarea = locationarea
-                )
-              );
-              IF(travellerHasHotel) THEN
-                travellerHotelProfit :=( cityVisitSum / numOfHotels );
-              END IF;
+
               UPDATE Persons AS p SET p.budget = p.budget + (cityVisitSum/numOfHotels)
               FROM Hotels h
               WHERE p.personnummer = h.ownerpersonnummer
@@ -333,8 +335,6 @@ BEGIN
                     --These two following ANDs are to ensure we dont overwrite NEW data
                     AND (NEW.personnummer != h.ownerpersonnummer
                          AND NEW.country != h.ownercountry);
-            ELSE
-              travellerHotelProfit :=( 0 );
             END IF;
 
             --update budget of traveler

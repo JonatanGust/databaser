@@ -115,7 +115,7 @@ WHERE country = 'Den'
   AND locationarea = 'Jyl'
   AND budget = 5;
 
--- Test of Person that person cant afford staying in that city -- FUNKAR INTE!!
+-- Test of Person that person cant afford staying in that city -- KLAR!!
 
 INSERT INTO Countries
 VALUES('Den');
@@ -155,13 +155,9 @@ VALUES('Den',
        'Ros',
        10 );
 
-UPDATE Persons SET country = 'Den', personnummer = '19960708-8888', name = 'Thera Cloone', locationcountry = 'Den', locationarea = 'Kob', budget = 10
+UPDATE Persons SET  locationcountry = 'Den', locationarea = 'Kob'
 WHERE country = 'Den'
-  AND personnummer = '19990708-8888'
-  AND name = 'Thera Cloone'
-  AND locationcountry = 'Den'
-  AND locationarea = 'Ros'
-  AND budget = 10;
+  AND personnummer = '19960708-8888';
 
 --DELETE FROM Persons
 --WHERE country ='Den' AND personnummer ='19940202-4815'
