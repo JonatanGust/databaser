@@ -572,7 +572,7 @@ DROP TRIGGER IF EXISTS person_update ON Persons;
 CREATE TRIGGER person_update BEFORE UPDATE ON Persons
 FOR EACH ROW
 WHEN(
-  (pg_trigger_depth()<1)
+  (pg_trigger_depth()<2)
   AND (OLD.locationcountry != NEW.locationcountry
   OR OLD.locationarea != NEW.locationarea)
 )
