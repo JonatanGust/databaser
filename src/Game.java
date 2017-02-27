@@ -62,60 +62,45 @@ public class Game
         System.out.println("    [...] is optional\n");
     }
 
-    /* Given a town name, country and population, this function
-      * should try to insert an area and a town (and possibly also a country)
-      * for the given attributes.
-      */
+    /* Given a town name, country and population, this function should try to insert an area and a town (and possibly
+       also a country) for the given attributes. */
     void insertTown(Connection conn, String name, String country, String population) throws SQLException  {
-        // TODO: Your implementation here
+        // TODO Your implementation here
 
         // TODO TO HERE
     }
 
-    /* Given a city name, country and population, this function
-      * should try to insert an area and a city (and possibly also a country)
-      * for the given attributes.
-      * The city visitbonus should be set to 0.
-      */
+    /* Given a city name, country and population, this function should try to insert an area and a city (and possibly
+       also a country) for the given attributes. The city visitbonus should be set to 0. */
     void insertCity(Connection conn, String name, String country, String population) throws SQLException {
         // TODO: Your implementation here
 
         // TODO TO HERE
     }
 
-    /* Given two areas, this function
-      * should try to insert a government owned road with tax 0
-      * between these two areas.
-      */
+    /* Given two areas, this function should try to insert a government owned road with tax 0 between these two areas. */
     void insertRoad(Connection conn, String area1, String country1, String area2, String country2) throws SQLException {
         // TODO: Your implementation here
 
         // TODO TO HERE
     }
 
-    /* Given a player, this function
-     * should return the area name of the player's current location.
-     */
+    /* Given a player, this function should return the area name of the player's current location. */
     String getCurrentArea(Connection conn, Player person) throws SQLException {
         // TODO: Your implementation here
 
         // TODO TO HERE
     }
 
-    /* Given a player, this function
-     * should return the country name of the player's current location.
-     */
+    /* Given a player, this function should return the country name of the player's current location. */
     String getCurrentCountry(Connection conn, Player person) throws SQLException {
         // TODO: Your implementation here
 
         // TODO TO HERE
     }
 
-    /* Given a player, this function
-      * should try to insert a table entry in persons for this player
-     * and return 1 in case of a success and 0 otherwise.
-      * The location should be random and the budget should be 1000.
-     */
+    /* Given a player, this function should try to insert a table entry in persons for this player and return 1 in
+       case of a success and 0 otherwise. The location should be random and the budget should be 1000. */
     int createPlayer(Connection conn, Player person) throws SQLException {
         // TODO: Your implementation here
 
@@ -133,11 +118,8 @@ public class Game
         // TODO TO HERE
     }
 
-    /* Given a player, this function
-       * sould show all directly-reachable destinations for the player from
-     * the player's current location.
-     * The output should include area names, country names and the associated road-taxes
-     */
+    /* Given a player, this function sould show all directly-reachable destinations for the player from the player's
+       current location. The output should include area names, country names and the associated road-taxes. */
     void getNextMoves(Connection conn, Player person) throws SQLException {
         // TODO: Your implementation here
         // hint: Use your implementation of the overloaded getNextMoves function
@@ -145,19 +127,15 @@ public class Game
         // TODO TO HERE
     }
 
-    /* Given a personnummer and a country, this function
-     * should list all properties (roads and hotels) of the person
-     * that is identified by the tuple of personnummer and country.
-     */
+    /* Given a personnummer and a country, this function should list all properties (roads and hotels) of the person
+       that is identified by the tuple of personnummer and country. */
     void listProperties(Connection conn, String personnummer, String country) {
         // TODO: Your implementation here
 
         // TODO TO HERE
     }
 
-    /* Given a player, this function
-     * should list all properties of the player.
-     */
+    /* Given a player, this function should list all properties of the player. */
     void listProperties(Connection conn, Player person) throws SQLException {
         // TODO: Your implementation here
         // hint: Use your implementation of the overlaoded listProperties function
@@ -165,74 +143,61 @@ public class Game
         // TODO TO HERE
     }
 
-    /* This function should print the budget, assets and refund values for all players.
-     */
+    /* This function should print the budget, assets and refund values for all players. */
     void showScores(Connection conn) throws SQLException {
         // TODO: Your implementation here
 
         // TODO TO HERE
     }
 
-    /* Given a player, a from area and a to area, this function
-     * should try to sell the road between these areas owned by the player
-     * and return 1 in case of a success and 0 otherwise.
-     */
+    /* Given a player, a from area and a to area, this function should try to sell the road between these areas owned
+       by the player and return 1 in case of a success and 0 otherwise. */
     int sellRoad(Connection conn, Player person, String area1, String country1, String area2, String country2) throws SQLException {
         // TODO: Your implementation here
 
         // TODO TO HERE
     }
 
-    /* Given a player and a city, this function
-     * should try to sell the hotel in this city owned by the player
-     * and return 1 in case of a success and 0 otherwise.
-     */
+    /* Given a player and a city, this function should try to sell the hotel in this city owned by the player and
+       return 1 in case of a success and 0 otherwise. */
     int sellHotel(Connection conn, Player person, String city, String country) throws SQLException {
         // TODO: Your implementation here
 
         // TODO TO HERE
     }
 
-    /* Given a player, a from area and a to area, this function
-     * should try to buy a road between these areas owned by the player
-     * and return 1 in case of a success and 0 otherwise.
-     */
+    /* Given a player, a from area and a to area, this function should try to buy a road between these areas owned by
+       the player and return 1 in case of a success and 0 otherwise. */
     int buyRoad(Connection conn, Player person, String area1, String country1, String area2, String country2) throws SQLException {
         // TODO: Your implementation here
 
         // TODO TO HERE
     }
 
-    /* Given a player and a city, this function
-     * should try to buy a hotel in this city owned by the player
-     * and return 1 in case of a success and 0 otherwise.
-     */
+    /* Given a player and a city, this function should try to buy a hotel in this city owned by the player and return
+       1 in case of a success and 0 otherwise. */
     int buyHotel(Connection conn, Player person, String name, String city, String country) throws SQLException {
         // TODO: Your implementation here
 
         // TODO TO HERE
     }
 
-    /* Given a player and a new location, this function
-     * should try to update the players location
-     * and return 1 in case of a success and 0 otherwise.
-     */
+    /* Given a player and a new location, this function should try to update the players location and return 1 in case
+       of a success and 0 otherwise. */
     int changeLocation(Connection conn, Player person, String area, String country) throws SQLException {
         // TODO: Your implementation here
 
         // TODO TO HERE
     }
 
-    /* This function should add the visitbonus of 1000 to a random city
-      */
+    /* This function should add the visitbonus of 1000 to a random city */
     void setVisitingBonus(Connection conn) throws SQLException {
         // TODO: Your implementation here
 
         // TODO TO HERE
     }
 
-    /* This function should print the winner of the game based on the currently highest budget.
-      */
+    /* This function should print the winner of the game based on the currently highest budget. */
     void announceWinner(Connection conn) throws SQLException {
         // TODO: Your implementation here
 
@@ -273,9 +238,7 @@ public class Game
 
             final Connection conn = DriverManager.getConnection(url, props);
 
-			/* This block creates the government entry and the necessary
-			 * country and area for that.
-			 */
+			/* This block creates the government entry and the necessary country and area for that. */
             try {
                 PreparedStatement statement = conn.prepareStatement("INSERT INTO Countries (name) VALUES (?)");
                 statement.setString(1, "");
