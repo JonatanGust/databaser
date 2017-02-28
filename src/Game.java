@@ -67,13 +67,54 @@ public class Game
     void insertTown(Connection conn, String name, String country, String population) throws SQLException  {
         // TODO Your implementation here
 
+        try {
+            PreparadStatement statement = conn.prepareStatement("INSERT INTO Countries (country) VALUES (?)");
+            statement.setString(1, "");
+            statement.executeUpdate();
+
+            statement = conn.prepareStatement("INSERT INTO Areas (country, name, population) VALUES (?, ?, cast(? as NUMERIC))");
+            statement.setString(1, "");
+            statement.setString(2, "");
+            statement.setString(3, "1");
+            statement.executeUpdate();
+
+            statement = conn.prepareStatement("INSERT INTO Town (country, name) VALUES (?, ?)");
+            statement.setString(1, "");
+            statement.setString(2, "");
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
         // TODO TO HERE
     }
 
     /* Given a city name, country and population, this function should try to insert an area and a city (and possibly
        also a country) for the given attributes. The city visitbonus should be set to 0. */
     void insertCity(Connection conn, String name, String country, String population) throws SQLException {
-        // TODO: Your implementation here
+        // TODO: Your implementation here, visitbonus??
+
+        try {
+            PreparadStatement statement = conn.prepareStatement("INSERT INTO Countries (country) VALUES (?)");
+            statement.setString(1, "");
+            statement.executeUpdate();
+
+            statement = conn.prepareStatement("INSERT INTO Areas (country, name, population) VALUES (?, ?, cast(? as NUMERIC))");
+            statement.setString(1, "");
+            statement.setString(2, "");
+            statement.setString(3, "1");
+            statement.executeUpdate();
+
+            statement = conn.prepareStatement("INSERT INTO Cities (country, name, visitbonus) VALUES (?, ?, cast(? as NUMERIC))");
+            statement.setString(1, "");
+            statement.setString(2, "");
+            statement.setString(3, "0");
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
 
         // TODO TO HERE
     }
@@ -81,6 +122,38 @@ public class Game
     /* Given two areas, this function should try to insert a government owned road with tax 0 between these two areas. */
     void insertRoad(Connection conn, String area1, String country1, String area2, String country2) throws SQLException {
         // TODO: Your implementation here
+
+        PreparadStatement statement = conn.prepareStatement("INSERT INTO Countries (country1) VALUES (?)");
+        statement.setString(1, "");
+        statement.executeUpdate();
+
+        statement = conn.prepareStatement("INSERT INTO Countries (country2) VALUES (?)");
+        statement.setString(1, "");
+        statement.executeUpdate();
+
+        statement = conn.prepareStatement("INSERT INTO Areas (country1, area1, population) VALUES (?, ?, cast(? as NUMERIC))");
+        statement.setString(1, "");
+        statement.setString(2, "");
+        statement.setString(3, "1");
+        statement.executeUpdate();
+
+        statement = conn.prepareStatement("INSERT INTO Areas (country2, area2, population) VALUES (?, ?, cast(? as NUMERIC))");
+        statement.setString(1, "");
+        statement.setString(2, "");
+        statement.setString(3, "1");
+        statement.executeUpdate();
+
+
+        statement = conn.prepareStatement("INSERT INTO Roads (country1, area1, country2, area2, ownercountry, ownerpersonnummer," +
+                "roadtax VALUES (?, ?, ?, ?, ?, cast(? as NUMERIC), cast(? as NUMERIC))");
+        statement.setString(1, "");
+        statement.setString(2, "");
+        statement.setString(3, "");
+        statement.setString(4, "");
+        statement.setString(5, "");
+        statement.setString(6, "1");
+        statement.setString(7, "1");
+        statement.executeUpdate();
 
         // TODO TO HERE
     }
