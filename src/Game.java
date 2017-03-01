@@ -162,10 +162,36 @@ public class Game
     String getCurrentArea(Connection conn, Player person) throws SQLException {
         // TODO: Your implementation here
 
-        
+        String query = "SELECT Persons   ";
+
+
+        PreparedStatement st = conn.prepareStatement(query);
+        ResultSet rs = st.executeQuery();
+        printTable(rs);
+        rs.close();
+        st.close();
+
+
+        String query = "WITH R1 AS (SELECT CLASS, (numGuns * bore ^ 3) AS firepower FROM classes), " +
+                "R2 AS (SELECT min(firepower) minimum FROM R1) SELECT CLASS FROM R1 " +
+                "WHERE firepower = (SELECT minimum FROM R2)";
 
 
 
+        /*
+	String query = "WITH R1 AS " +
+	    "(SELECT CLASS, " +
+	    "    (numGuns * bore ^ 3) AS firepower " +
+	    "FROM classes), " +
+	    "R2 AS " +
+	    "(SELECT min(firepower) minimum " +
+	    "FROM R1) " +
+	    "SELECT CLASS " +
+	    "FROM R1 " +
+	    "WHERE firepower = " +
+	    "    (SELECT minimum " +
+	    "     FROM R2)";
+     */
 
         // TODO TO HERE
     }
