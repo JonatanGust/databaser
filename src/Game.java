@@ -162,6 +162,11 @@ public class Game
     String getCurrentArea(Connection conn, Player person) throws SQLException {
         // TODO: Your implementation here
 
+        
+
+
+
+
         // TODO TO HERE
     }
 
