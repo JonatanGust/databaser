@@ -45,46 +45,7 @@ R:
 14   location_country (of an hotel), location_area (of an hotel), personnumber_owner (of an hotel), country_owner (of an hotel) -> hotelID, price, name (of an hotel)
 
 
-Now we make new tables out of/from our FD;s and see that  3 through 7 is the same table, just using different "naming" of the key which probably indicates that
-there are quite a few references to this table. Same goes for 8-10, 11-12 and 13-14. Every table also contains "country" and as country ->> *everything* we can be
-sure that country is an "ultra" key. The language never comes into play so we perhaps need to add a table to store who knows what language. Same goes for the cities
-and towns which exists in the domain description. If we then compose tables from this data, excluding things we don't get from FD;s we get:
-R1:
-  _name_ (of a country)
-
-R2:
-  _name_ (of a language)
-
-R3:
-  _country_ (of an area), _name_ (of an area), population
-  References:
-    country -> R1.name
-
-R4:
-  _personnumber_, _country_ (of a person), name (of a person), budget,  location_country (of a person), location_area (of a person)
-  References:
-    country -> R1.name
-    (location_area, location_country) -> R3.(name, country)
-
-R5:
-  THIS:
-    _roadID_, tax, pointA_area, pointA_country, pointB_area, pointB_country, personnumber_owner (of a road), country_owner (of a road)
-  OR:
-    _pointA_area_, _pointA_country_, _pointB_area_, _pointB_country_, _personnumber_owner_ (of a road), _country_owner_ (of a road), roadID, tax
-  References:
-    (pointA_area, pointA_country) -> R3.(name, country)
-    (pointB_area, pointB_country) -> R3.(name, country)
-    (personnumber_owner, country_owner) -> R4.(personnumber, country)
-
-R6:
-  THIS:
-    _hotelID_, price, name (of an hotel), location_country (of an hotel), location_area (of an hotel), personnumber_owner (of an hotel), country_owner (of an hotel)
-  OR:
-    _location_country_ (of an hotel), _location_area_ (of an hotel), _personnumber_owner_ (of an hotel), _country_owner_ (of an hotel), hotelID, price, name (of an hotel)
-  References:
-    (location_country, location_area) -> R3.(country, name)
-    (personnumber_owner, country_owner) -> R4.(personnumber, country)
-R':
-  <Nothing left>
-Now this does tell us that perhaps having hotel and road ID;s might not be the best way, we could instead just use almost every other attribute as keys. We also haven't
-solved the problem of towns, cities and languages spoken, but an FD analysis doesn't cover everything so that's okay.
+We see that  3 through 7 is the "same" dependency, just using different "naming" of the keys which probably indicates that there are quite a few references to this
+table. Same goes for 8-10, 11-12 and 13-14. This is because we store the same kind of information for different reasons/uses which of course are violations of both
+BCNF and 3NF. This indicates that we should remove all but one of these dependencies, this can be easily done by splitting up the table by each FD and then remove
+the redundant ones.
