@@ -24,7 +24,7 @@ public class Game
         String playername;
         String personnummer;
         String country;
-        private String startingArea;
+        String startingArea;
 
         public Player (String name, String nr, String cntry, String startingArea) {
             this.playername = name;
@@ -68,22 +68,30 @@ public class Game
         // TODO Your implementation here
 
         try {
-            PreparadStatement statement = conn.prepareStatement("INSERT INTO Countries (country) VALUES (?)");
-            statement.setString(1, "");
-            statement.executeUpdate();
+            PreparadStatement statement;
+            try{
+                statement = conn.prepareStatement("INSERT INTO Countries (country) VALUES (?)");
+                statement.setString(1, country);
+                statement.executeUpdate();
+            } catch (SQLException e){
+                //If fail, country allready in Countries
+            }
+
+            //Both inserts should work, otherwise that area/town allready exists
 
             statement = conn.prepareStatement("INSERT INTO Areas (country, name, population) VALUES (?, ?, cast(? as NUMERIC))");
-            statement.setString(1, "");
-            statement.setString(2, "");
-            statement.setString(3, "1");
+            statement.setString(1, country);
+            statement.setString(2, name);
+            statement.setString(3, population);
             statement.executeUpdate();
 
             statement = conn.prepareStatement("INSERT INTO Town (country, name) VALUES (?, ?)");
-            statement.setString(1, "");
-            statement.setString(2, "");
+            statement.setString(1, country);
+            statement.setString(2, name);
             statement.executeUpdate();
-
+            statement.close();
         } catch (SQLException e) {
+        //    throw e; //TODO this should be ok?
             System.out.println(e.getMessage());
         }
 
@@ -96,23 +104,31 @@ public class Game
         // TODO: Your implementation here, visitbonus??
 
         try {
-            PreparadStatement statement = conn.prepareStatement("INSERT INTO Countries (country) VALUES (?)");
-            statement.setString(1, "");
-            statement.executeUpdate();
+            PreparadStatement statement;
+            try {
+                statement = conn.prepareStatement("INSERT INTO Countries (country) VALUES (?)");
+                statement.setString(1, country);
+                statement.executeUpdate();
+            } catch (SQLException e) {
+                //Country allready exists
+            }
 
             statement = conn.prepareStatement("INSERT INTO Areas (country, name, population) VALUES (?, ?, cast(? as NUMERIC))");
-            statement.setString(1, "");
-            statement.setString(2, "");
-            statement.setString(3, "1");
+            statement.setString(1, country);
+            statement.setString(2, name);
+            statement.setString(3, population);
             statement.executeUpdate();
 
             statement = conn.prepareStatement("INSERT INTO Cities (country, name, visitbonus) VALUES (?, ?, cast(? as NUMERIC))");
-            statement.setString(1, "");
-            statement.setString(2, "");
+            statement.setString(1, country);
+            statement.setString(2, name);
             statement.setString(3, "0");
             statement.executeUpdate();
 
+            statement.close();
+
         } catch (SQLException e) {
+            //throw e;//TODO this should be ok?
             System.out.println(e.getMessage());
         }
 
@@ -122,38 +138,57 @@ public class Game
     /* Given two areas, this function should try to insert a government owned road with tax 0 between these two areas. */
     void insertRoad(Connection conn, String area1, String country1, String area2, String country2) throws SQLException {
         // TODO: Your implementation here
+        try {
+            PreparadStatement statement;
+            try {
+                statement = conn.prepareStatement("INSERT INTO Countries (country) VALUES (?)");
+                statement.setString(1, country1);
+                statement.executeUpdate();
+            } catch (SQLException e) {
+                //is oke
+            }
+            try {
+                statement = conn.prepareStatement("INSERT INTO Countries (country) VALUES (?)");
+                statement.setString(1, country2);
+                statement.executeUpdate();
+            } catch (SQLException e) {
+                //is oke
+            }
+            try {
+                statement = conn.prepareStatement("INSERT INTO Areas (country, area, population) VALUES (?, ?, cast(? as NUMERIC))");
+                statement.setString(1, country1);
+                statement.setString(2, area1);
+                statement.setString(3, "0");
+                statement.executeUpdate();
+            } catch (SQLException e) {
+                //is oke
+            }
+            try {
+                statement = conn.prepareStatement("INSERT INTO Areas (country, area, population) VALUES (?, ?, cast(? as NUMERIC))");
+                statement.setString(1, country2);
+                statement.setString(2, area2);
+                statement.setString(3, "0");
+                statement.executeUpdate();
+            } catch (SQLException e) {
+                //is oke
+            }
 
-        PreparadStatement statement = conn.prepareStatement("INSERT INTO Countries (country1) VALUES (?)");
-        statement.setString(1, "");
-        statement.executeUpdate();
 
-        statement = conn.prepareStatement("INSERT INTO Countries (country2) VALUES (?)");
-        statement.setString(1, "");
-        statement.executeUpdate();
+            statement = conn.prepareStatement("INSERT INTO Roads (fromcountry, fromarea, tocountry, toarea, ownercountry, ownerpersonnummer," +
+                    "roadtax VALUES (?, ?, ?, ?, ?, ?, cast(? as NUMERIC))"); //cast(? as NUMERIC), cast(? as NUMERIC))");
+            statement.setString(1, country1);
+            statement.setString(2, area1);
+            statement.setString(3, country2);
+            statement.setString(4, area2);
+            statement.setString(5, "");//GOV. owned
+            statement.setString(6, "");
+            statement.setString(7, "0");//0 tax
+            statement.executeUpdate();
+            statement.close();
+        } catch (SQLException e) {
+            //throw e;//TODO this should be ok?
+        }
 
-        statement = conn.prepareStatement("INSERT INTO Areas (country1, area1, population) VALUES (?, ?, cast(? as NUMERIC))");
-        statement.setString(1, "");
-        statement.setString(2, "");
-        statement.setString(3, "1");
-        statement.executeUpdate();
-
-        statement = conn.prepareStatement("INSERT INTO Areas (country2, area2, population) VALUES (?, ?, cast(? as NUMERIC))");
-        statement.setString(1, "");
-        statement.setString(2, "");
-        statement.setString(3, "1");
-        statement.executeUpdate();
-
-
-        statement = conn.prepareStatement("INSERT INTO Roads (country1, area1, country2, area2, ownercountry, ownerpersonnummer," +
-                "roadtax VALUES (?, ?, ?, ?, ?, cast(? as NUMERIC), cast(? as NUMERIC))");
-        statement.setString(1, "");
-        statement.setString(2, "");
-        statement.setString(3, "");
-        statement.setString(4, "");
-        statement.setString(5, "");
-        statement.setString(6, "1");
-        statement.setString(7, "1");
-        statement.executeUpdate();
 
         // TODO TO HERE
     }
@@ -161,45 +196,40 @@ public class Game
     /* Given a player, this function should return the area name of the player's current location. */
     String getCurrentArea(Connection conn, Player person) throws SQLException {
         // TODO: Your implementation here
+        try {
+            PreparedStatement st = conn.prepareStatement("SELECT locationarea FROM Persons WHERE country = ? AND personnummer = ?");
+            statement.setString(1, person.country);
+            statement.setString(2, person.personnummer);
+            ResultSet rs = st.executeQuery();
+            printTable(rs);//return?
+            rs.close();
+            st.close();
+        } catch (SQLException e) {
+            //throw e;//TODO this should be ok?
+        }
 
-        String query = "SELECT Persons   ";
-
-
-        PreparedStatement st = conn.prepareStatement(query);
-        ResultSet rs = st.executeQuery();
-        printTable(rs);
-        rs.close();
-        st.close();
-
-
+        /*
         String query = "WITH R1 AS (SELECT CLASS, (numGuns * bore ^ 3) AS firepower FROM classes), " +
                 "R2 AS (SELECT min(firepower) minimum FROM R1) SELECT CLASS FROM R1 " +
                 "WHERE firepower = (SELECT minimum FROM R2)";
-
-
-
-        /*
-	String query = "WITH R1 AS " +
-	    "(SELECT CLASS, " +
-	    "    (numGuns * bore ^ 3) AS firepower " +
-	    "FROM classes), " +
-	    "R2 AS " +
-	    "(SELECT min(firepower) minimum " +
-	    "FROM R1) " +
-	    "SELECT CLASS " +
-	    "FROM R1 " +
-	    "WHERE firepower = " +
-	    "    (SELECT minimum " +
-	    "     FROM R2)";
-     */
-
+        */
         // TODO TO HERE
     }
 
     /* Given a player, this function should return the country name of the player's current location. */
     String getCurrentCountry(Connection conn, Player person) throws SQLException {
         // TODO: Your implementation here
-
+        try {
+            PreparedStatement st = conn.prepareStatement("SELECT locationcountry FROM Persons WHERE country = ? AND personnummer = ?");
+            statement.setString(1, person.country);
+            statement.setString(2, person.personnummer);
+            ResultSet rs = st.executeQuery();
+            printTable(rs);//return?
+            rs.close();
+            st.close();
+        } catch (SQLException e){
+            //throw e;//TODO this should be ok?
+        }
         // TODO TO HERE
     }
 
@@ -207,6 +237,38 @@ public class Game
        case of a success and 0 otherwise. The location should be random and the budget should be 1000. */
     int createPlayer(Connection conn, Player person) throws SQLException {
         // TODO: Your implementation here
+        /*
+        country TEXT NOT NULL,
+  personnummer VARCHAR(13) NOT NULL
+  CHECK(
+    (
+    personnummer ~ '^\d{8}-\d{4}$'
+    OR (personnummer  ~ '^ $' AND country ~ '^ $')
+    OR (personnummer  ~ '^$' AND country ~ '^$')
+    )
+  ) ,
+  name TEXT NOT NULL,
+  locationcountry TEXT NOT NULL,
+  locationarea TEXT NOT NULL,
+  budget NUMERIC
+         */
+        try{
+            PreparedStatement statement;
+            statement = conn.prepareStatement("INSERT INTO Persons (country, personnummer, name, locationcountry, locationarea, budget " +
+                    " VALUES (?, ?, ?, ?, ?, cast(? as NUMERIC))");
+            statement.setString(1, person.country);
+            statement.setString(2, person.personnummer);
+            statement.setString(3, person.playername);
+            statement.setString(4, person.country);
+            statement.setString(5, person.startingArea);
+            statement.setString(6, "1000");
+            statement.executeUpdate();
+            statement.close();
+            return 1;
+        } catch (SQLException e){
+            return 0;
+            //is oke
+        }
 
         // TODO TO HERE
     }
@@ -218,6 +280,40 @@ public class Game
       */
     void getNextMoves(Connection conn, Player person, String area, String country) throws SQLException {
         // TODO: Your implementation here
+        try {
+            PreparedStatement statement;
+        /*statement = conn.prepareStatement(
+                "SELECT destcountry, destarea, roadtax FROM NextMoves WHERE personcountry = ? AND personnummer = ? " );*/
+            statement = conn.prepareStatement(
+                    "SELECT destcountry, destarea, MIN(roadtax) FROM ( " +
+                            " ( " +
+                            "SELECT fromcountry AS destcountry, fromarea AS destarea, roadtax FROM Roads" +
+                            " WHERE tocountry = ? AND toarea = ? AND roadtax <= (SELECT budget FROM Persons WHERE country = ? AND personnummer = ?) " +
+                            " ) " +
+                            "UNION" +
+                            " ( " +
+                            "SELECT tocountry AS destcountry, toarea AS destarea, roadtax FROM Roads" +
+                            " WHERE fromcountry = ? AND fromarea = ? AND roadtax <= (SELECT budget FROM Persons WHERE country = ? AND personnummer = ?) " +
+                            " ) " +
+                            " ) AS huehue" +
+                            "GROUP BY destcountry, destarea" );
+            statement.setString(1, country);
+            statement.setString(2, area);
+            statement.setString(3, person.country);
+            statement.setString(4, person.personnummer);
+            statement.setString(5, country);
+            statement.setString(6, area);
+            statement.setString(7, person.country);
+            statement.setString(8, person.personnummer);
+            ResultSet resultset = statement.executeQuery();
+        /*statement.setString(1, person.country);
+        statement.setString(2, person.personnummer);*/
+            printTable(resultset);
+            resultset.close();
+            statement.close();
+        } catch (SQLException e){
+            //throw e;//TODO this should be ok?
+        }
 
         // TODO TO HERE
     }
@@ -227,6 +323,19 @@ public class Game
     void getNextMoves(Connection conn, Player person) throws SQLException {
         // TODO: Your implementation here
         // hint: Use your implementation of the overloaded getNextMoves function
+        try {
+            PreparedStatement statement;
+            statement = conn.prepareStatement(
+                    "SELECT destcountry, destarea, roadtax FROM NextMoves WHERE personcountry = ? AND personnummer = ?" );
+            statement.setString(1, person.country);
+            statement.setString(2, person.personnummer);
+            ResultSet resultset = statement.executeQuery();
+            printTable(resultset);
+            resultset.close();
+            statement.close();
+        } catch (SQLException e) {
+            //throw e;//TODO this should be ok?
+        }
 
         // TODO TO HERE
     }
@@ -235,6 +344,28 @@ public class Game
        that is identified by the tuple of personnummer and country. */
     void listProperties(Connection conn, String personnummer, String country) {
         // TODO: Your implementation here
+        try {
+            PreparedStatement statement;
+            statement = conn.prepareStatement(
+                    "SELECT isHotel, locationCountry1, locationArea1, locationCountry2, locationArea2, cost FROM" +
+                            "(" +
+                            "SELECT true AS isHotel, locationcountry AS locationCountry1, locationname AS locationArea1, null AS locationCountry2, " +
+                            " null AS locationArea2, price AS cost FROM Hotels WHERE ownercountry = ? AND ownerpersonnummer = ? " +
+                            "UNION" +
+                            "SELECT false AS isHotel, tocountry AS locationCountry1, toarea AS locationArea1, fromcountry AS locationCountry2, " +
+                            " fromarea AS locationArea2, roadtax AS cost FROM Roads WHERE ownercountry = ? AND ownerpersonnummer = ? " +
+                            ") as huehue"   );
+            statement.setString(1, country);
+            statement.setString(2, personnummer);
+            statement.setString(3, country);
+            statement.setString(4, personnummer);
+            ResultSet resultset = statement.executeQuery();
+            printTable(resultset);
+            resultset.close();
+            statement.close();
+        } catch (SQLException e) {
+            //throw e;//TODO this should be ok?
+        }
 
         // TODO TO HERE
     }
@@ -243,14 +374,23 @@ public class Game
     void listProperties(Connection conn, Player person) throws SQLException {
         // TODO: Your implementation here
         // hint: Use your implementation of the overlaoded listProperties function
-
+        listProperties(conn, person.personnummer, person.country);
         // TODO TO HERE
     }
 
     /* This function should print the budget, assets and refund values for all players. */
     void showScores(Connection conn) throws SQLException {
-        // TODO: Your implementation here
-
+        // TODO: Your implementation herePreparedStatement statement;
+        try {
+            PreparedStatement statement;
+            statement = conn.prepareStatement("SELECT * FROM AssetSummary" );
+            ResultSet resultset = statement.executeQuery();
+            printTable(resultset);
+            resultset.close();
+            statement.close();
+        } catch (SQLException e) {
+            //throw e;//TODO this should be ok?
+        }
         // TODO TO HERE
     }
 
@@ -258,7 +398,28 @@ public class Game
        by the player and return 1 in case of a success and 0 otherwise. */
     int sellRoad(Connection conn, Player person, String area1, String country1, String area2, String country2) throws SQLException {
         // TODO: Your implementation here
+        try{
+            PreparedStatement statement;
+            statement = conn.prepareStatement("DELETE FROM Roads WHERE ownerpersonnummer = ? AND ownercountry = ? " +
+                    " AND fromcountry = ? AND fromarea = ? AND tocountry = ? AND toarea = ?");
+            statement.setString(1, person.country);
+            statement.setString(2, person.personnummer);
+            statement.setString(3, country1);
+            statement.setString(4, area1);
+            statement.setString(5, country2);
+            statement.setString(6, area2);
+            statement.executeUpdate();
+            //How much does a road sell for????
+            statement = conn.prepareStatement("UPDATE Persons SET budget = (budget + getval('roadprice') WHERE personnummer = ? AND country = ? " );
+            statement.setString(1, person.country);
+            statement.setString(2, person.personnummer);
+            statement.executeUpdate();
 
+            statement.close();
+            return 1;
+        } catch (SQLException e) {
+            return 0;
+        }
         // TODO TO HERE
     }
 
@@ -266,7 +427,20 @@ public class Game
        return 1 in case of a success and 0 otherwise. */
     int sellHotel(Connection conn, Player person, String city, String country) throws SQLException {
         // TODO: Your implementation here
-
+        try{
+            PreparedStatement statement;
+            statement = conn.prepareStatement("DELETE FROM Hotels WHERE ownerpersonnummer = ? AND ownercountry = ? " +
+                    " AND locationcountry = ? AND locationname = ? ");
+            statement.setString(1, person.country);
+            statement.setString(2, person.personnummer);
+            statement.setString(3, country);
+            statement.setString(4, city);
+            statement.executeUpdate();
+            statement.close();
+            return 1;
+        } catch (SQLException e) {
+            return 0;
+        }
         // TODO TO HERE
     }
 
@@ -274,7 +448,22 @@ public class Game
        the player and return 1 in case of a success and 0 otherwise. */
     int buyRoad(Connection conn, Player person, String area1, String country1, String area2, String country2) throws SQLException {
         // TODO: Your implementation here
-
+        try{
+            PreparedStatement statement;
+            statement = conn.prepareStatement("INSERT INTO Roads (fromcountry, fromarea, tocountry, toarea, ownercountry, ownerpersonnummer) " +
+                    "VALUES( ?, ?, ?, ?, ?, ?)");
+            statement.setString(1, country1);
+            statement.setString(2, area1);
+            statement.setString(3, country2);
+            statement.setString(4, area2);
+            statement.setString(5, person.country);
+            statement.setString(6, person.personnummer);
+            statement.executeUpdate();
+            statement.close();
+            return 1;
+        } catch (SQLException e) {
+            return 0;
+        }
         // TODO TO HERE
     }
 
@@ -282,7 +471,21 @@ public class Game
        1 in case of a success and 0 otherwise. */
     int buyHotel(Connection conn, Player person, String name, String city, String country) throws SQLException {
         // TODO: Your implementation here
-
+        try{
+            PreparedStatement statement;
+            statement = conn.prepareStatement("INSERT INTO Hotels (locationcountry, locationname, ownercountry, ownerpersonnummer, name) " +
+                    "VALUES( ?, ?, ?, ?, ?)");
+            statement.setString(1, country);
+            statement.setString(2, city);
+            statement.setString(3, person.country);
+            statement.setString(4, person.personnummer);
+            statement.setString(5, pname);
+            statement.executeUpdate();
+            statement.close();
+            return 1;
+        } catch (SQLException e) {
+            return 0;
+        }
         // TODO TO HERE
     }
 
@@ -290,21 +493,50 @@ public class Game
        of a success and 0 otherwise. */
     int changeLocation(Connection conn, Player person, String area, String country) throws SQLException {
         // TODO: Your implementation here
-
+        try{
+            PreparedStatement statement;
+            statement = conn.prepareStatement("UPDATE Persons SET (locationcountry, locationarea) VALUES( ?, ?)" +
+                    "WHERE country = ? AND personnummer = ?");
+            statement.setString(1, country);
+            statement.setString(2, area);
+            statement.setString(3, person.country);
+            statement.setString(4, person.personnummer);
+            statement.executeUpdate();
+            statement.close();
+            return 1;
+        } catch (SQLException e) {
+            return 0;
+        }
         // TODO TO HERE
     }
 
     /* This function should add the visitbonus of 1000 to a random city */
     void setVisitingBonus(Connection conn) throws SQLException {
         // TODO: Your implementation here
-
+        try{
+            PreparedStatement statement;
+            statement = conn.prepareStatement("UPDATE Cities SET (visitbonus = visitbonus + 1000) LIMIT 1");
+            statement.executeUpdate();
+            statement.close();
+        } catch (SQLException e) {
+            //throw e;//TODO this should be ok?
+        }
         // TODO TO HERE
     }
 
     /* This function should print the winner of the game based on the currently highest budget. */
     void announceWinner(Connection conn) throws SQLException {
         // TODO: Your implementation here
-
+        try {
+            PreparedStatement statement;
+            statement = conn.prepareStatement("SELECT * FROM Persons WHERE budget = ( SELECT MAX(budget) FROM Persons ) " );
+            ResultSet resultset = statement.executeQuery();
+            printTable(resultset);
+            resultset.close();
+            statement.close();
+        } catch (SQLException e) {
+            //throw e;//TODO this should be ok?
+        }
         // TODO TO HERE
     }
 
