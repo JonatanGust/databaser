@@ -7,15 +7,14 @@
  * 3) Implement the three functions showPossibleMoves, showPlayerAssets
  *    and showScores.
  */
-import java.math.BigDecimal;
-import java.net.URL;
-import java.sql.*; // JDBC stuff.
-import java.util.Calendar;
-import java.util.Map;
-import java.util.Properties;
-import java.io.*;  // Reading user input.
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.sql.*;
 import java.util.ArrayList;
-import java.util.concurrent.Executor;
+import java.util.Properties;
 
 public class Game
 {
@@ -34,7 +33,7 @@ public class Game
         }
     }
 
-    String USERNAME = "tda357_047";
+    String USERNAME = "tda357_046";
     String PASSWORD = "zrwHt3Xn";
 
     /* Print command optionssetup.
@@ -61,6 +60,30 @@ public class Game
         System.out.println("    q[uit move]");
         System.out.println("    [...] is optional\n");
     }
+    private void printTable (ResultSet resultSet) throws SQLException{
+        try {
+            StringBuilder stringBuilder = new StringBuilder();
+            int columnCount = resultSet.getMetaData().getColumnCount();
+            while (resultSet.next()) {
+                for (int i = 0; i < columnCount;) {
+                    stringBuilder.append("\t\t");
+                    if(resultSet.getString(i + 1) != null)stringBuilder.append(resultSet.getString(i + 1));
+                    else stringBuilder.append(resultSet.getInt(i + 1));
+                    if (++i < columnCount) stringBuilder.append("\t\t|");
+                }
+                stringBuilder.append("\r\n");
+            }
+            stringBuilder.append("\r\nhellu\r\n");
+            System.out.println(stringBuilder.toString());
+            //String resultSetAsString = stringBuilder.toString();
+
+        } catch (SQLException e){
+            System.out.println("Print table fail!");
+            System.out.println(e.getMessage());
+            throw e;
+        }
+
+    }
 
     /* Given a town name, country and population, this function should try to insert an area and a town (and possibly
        also a country) for the given attributes. */
@@ -70,28 +93,29 @@ public class Game
         try {
             PreparedStatement statement;
             try{
-                statement = conn.prepareStatement("INSERT INTO Countries (country) VALUES (?)");
+                statement = conn.prepareStatement("INSERT INTO Countries  VALUES (?)");
                 statement.setString(1, country);
                 statement.executeUpdate();
             } catch (SQLException e){
                 //If fail, country allready in Countries
+                System.out.println(e.getMessage());
             }
 
-            //Both inserts should work, otherwise that area/town allready exists
+            //Both inserts should work, otherwise that area/town already exists
 
-            statement = conn.prepareStatement("INSERT INTO Areas (country, name, population) VALUES (?, ?, cast(? as NUMERIC))");
+            statement = conn.prepareStatement("INSERT INTO Areas  VALUES (?, ?, cast(? as NUMERIC))");
             statement.setString(1, country);
             statement.setString(2, name);
             statement.setString(3, population);
             statement.executeUpdate();
 
-            statement = conn.prepareStatement("INSERT INTO Town (country, name) VALUES (?, ?)");
+            statement = conn.prepareStatement("INSERT INTO Town  VALUES (?, ?)");
             statement.setString(1, country);
             statement.setString(2, name);
             statement.executeUpdate();
             statement.close();
         } catch (SQLException e) {
-        //    throw e; //TODO this should be ok?
+            //throw e; //TODO this should be ok?
             System.out.println(e.getMessage());
         }
 
@@ -106,20 +130,21 @@ public class Game
         try {
             PreparedStatement statement;
             try {
-                statement = conn.prepareStatement("INSERT INTO Countries (country) VALUES (?)");
+                statement = conn.prepareStatement("INSERT INTO Countries  VALUES ( ? )");
                 statement.setString(1, country);
                 statement.executeUpdate();
             } catch (SQLException e) {
                 //Country allready exists
+                System.out.println(e.getMessage());
             }
 
-            statement = conn.prepareStatement("INSERT INTO Areas (country, name, population) VALUES (?, ?, cast(? as NUMERIC))");
+            statement = conn.prepareStatement("INSERT INTO Areas VALUES (?, ?, cast(? as NUMERIC))");
             statement.setString(1, country);
             statement.setString(2, name);
             statement.setString(3, population);
             statement.executeUpdate();
 
-            statement = conn.prepareStatement("INSERT INTO Cities (country, name, visitbonus) VALUES (?, ?, cast(? as NUMERIC))");
+            statement = conn.prepareStatement("INSERT INTO Cities VALUES (?, ?, cast(? as NUMERIC))");
             statement.setString(1, country);
             statement.setString(2, name);
             statement.setString(3, "0");
@@ -141,41 +166,45 @@ public class Game
         try {
             PreparedStatement statement;
             try {
-                statement = conn.prepareStatement("INSERT INTO Countries (country) VALUES (?)");
+                statement = conn.prepareStatement("INSERT INTO Countries  VALUES (?)");
                 statement.setString(1, country1);
                 statement.executeUpdate();
             } catch (SQLException e) {
                 //is oke
+                System.out.println(e.getMessage());
             }
             try {
-                statement = conn.prepareStatement("INSERT INTO Countries (country) VALUES (?)");
+                statement = conn.prepareStatement("INSERT INTO Countries  VALUES (?)");
                 statement.setString(1, country2);
                 statement.executeUpdate();
             } catch (SQLException e) {
                 //is oke
+                System.out.println(e.getMessage());
             }
             try {
-                statement = conn.prepareStatement("INSERT INTO Areas (country, area, population) VALUES (?, ?, cast(? as NUMERIC))");
+                statement = conn.prepareStatement("INSERT INTO Areas  VALUES (?, ?, cast(? as NUMERIC))");
                 statement.setString(1, country1);
                 statement.setString(2, area1);
                 statement.setString(3, "0");
                 statement.executeUpdate();
             } catch (SQLException e) {
                 //is oke
+                System.out.println(e.getMessage());
             }
             try {
-                statement = conn.prepareStatement("INSERT INTO Areas (country, area, population) VALUES (?, ?, cast(? as NUMERIC))");
+                statement = conn.prepareStatement("INSERT INTO Areas  VALUES (?, ?, cast(? as NUMERIC))");
                 statement.setString(1, country2);
                 statement.setString(2, area2);
                 statement.setString(3, "0");
                 statement.executeUpdate();
             } catch (SQLException e) {
                 //is oke
+                System.out.println(e.getMessage());
             }
 
 
-            statement = conn.prepareStatement("INSERT INTO Roads (fromcountry, fromarea, tocountry, toarea, ownercountry, ownerpersonnummer," +
-                    "roadtax VALUES (?, ?, ?, ?, ?, ?, cast(? as NUMERIC))"); //cast(? as NUMERIC), cast(? as NUMERIC))");
+            statement = conn.prepareStatement("INSERT INTO Roads " +
+                    "  VALUES (?, ?, ?, ?, ?, ?, cast(? as NUMERIC))"); //cast(? as NUMERIC), cast(? as NUMERIC))");
             statement.setString(1, country1);
             statement.setString(2, area1);
             statement.setString(3, country2);
@@ -187,6 +216,7 @@ public class Game
             statement.close();
         } catch (SQLException e) {
             //throw e;//TODO this should be ok?
+            System.out.println(e.getMessage());
         }
 
 
@@ -209,6 +239,7 @@ public class Game
             return anwser;
         } catch (SQLException e) {
             //throw e;//TODO this should be ok?
+            System.out.println(e.getMessage());
         }
 
         /*
@@ -236,6 +267,7 @@ public class Game
             return anwser;
         } catch (SQLException e){
             //throw e;//TODO this should be ok?
+            System.out.println(e.getMessage());
         }
         // TODO TO HERE
         return null;
@@ -248,18 +280,19 @@ public class Game
 
         try{
             PreparedStatement statement;
-            statement = conn.prepareStatement("INSERT INTO Persons (country, personnummer, name, locationcountry, locationarea, budget )" +
+            statement = conn.prepareStatement("INSERT INTO Persons " +
                     " VALUES (?, ?, ?, ?, ?, cast(? AS NUMERIC))");
             statement.setString(1, person.country);
             statement.setString(2, person.personnummer);
             statement.setString(3, person.playername);
             statement.setString(4, person.country);
             statement.setString(5, person.startingArea);
-            statement.setString(6, "1000");
+            statement.setInt(6, 1000);
             statement.executeUpdate();
             statement.close();
             return 1;
         } catch (SQLException e){
+            System.out.println(e.getMessage());
             return 0;
             //is oke
         }
@@ -279,18 +312,28 @@ public class Game
         /*statement = conn.prepareStatement(
                 "SELECT destcountry, destarea, roadtax FROM NextMoves WHERE personcountry = ? AND personnummer = ? " );*/
             statement = conn.prepareStatement(
-                    "SELECT destcountry, destarea, MIN(roadtax) FROM ( " +
+                    "SELECT destcountry, destarea, MIN(roadtax) AS roadtax FROM ( " +
                             " ( " +
-                            "SELECT fromcountry AS destcountry, fromarea AS destarea, roadtax FROM Roads" +
+                            " SELECT ( fromcountry AS destcountry, fromarea AS destarea, roadtax AS roadtax ) FROM Roads" +
                             " WHERE tocountry = ? AND toarea = ? AND roadtax <= (SELECT budget FROM Persons WHERE country = ? AND personnummer = ?) " +
                             " ) " +
-                            "UNION" +
+                            " UNION " +
                             " ( " +
-                            "SELECT tocountry AS destcountry, toarea AS destarea, roadtax FROM Roads" +
+                            " SELECT ( tocountry AS destcountry, toarea AS destarea, roadtax AS roadtax ) FROM Roads" +
                             " WHERE fromcountry = ? AND fromarea = ? AND roadtax <= (SELECT budget FROM Persons WHERE country = ? AND personnummer = ?) " +
                             " ) " +
+                            " UNION " +
+                            " ( " +
+                            " SELECT ( fromcountry AS destcountry, fromarea AS destarea, 0 AS roadtax ) FROM Roads" +
+                            " WHERE tocountry = ? AND toarea = ? AND ownercountry = ? AND ownerpersonnummer = ?" +
+                            " ) " +
+                            " UNION " +
+                            " ( " +
+                            " SELECT ( tocountry AS destcountry, toarea AS destarea, 0 AS roadtax ) FROM Roads" +
+                            " WHERE fromcountry = ? AND fromarea = ? AND ownercountry = ? AND ownerpersonnummer = ? " +
+                            " ) " +
                             " ) AS huehue" +
-                            "GROUP BY destcountry, destarea" );
+                            " GROUP BY destcountry, destarea" );
             statement.setString(1, country);
             statement.setString(2, area);
             statement.setString(3, person.country);
@@ -299,14 +342,23 @@ public class Game
             statement.setString(6, area);
             statement.setString(7, person.country);
             statement.setString(8, person.personnummer);
+            statement.setString(9, country);
+            statement.setString(10, area);
+            statement.setString(11, person.country);
+            statement.setString(12, person.personnummer);
+            statement.setString(13, country);
+            statement.setString(14, area);
+            statement.setString(15, person.country);
+            statement.setString(16, person.personnummer);
             ResultSet resultset = statement.executeQuery();
         /*statement.setString(1, person.country);
         statement.setString(2, person.personnummer);*/
-            //printTable(resultset);
+            printTable(resultset);
             resultset.close();
             statement.close();
         } catch (SQLException e){
             //throw e;//TODO this should be ok?
+            System.out.println(e.getMessage());
         }
 
         // TODO TO HERE
@@ -320,7 +372,7 @@ public class Game
         try {
             PreparedStatement statement;
             statement = conn.prepareStatement(
-                    "SELECT destcountry, destarea, roadtax FROM NextMoves WHERE personcountry = ? AND personnummer = ?" );
+                    "SELECT destcountry, destarea, cost FROM NextMoves WHERE personcountry = ? AND personnummer = ?" );
             statement.setString(1, person.country);
             statement.setString(2, person.personnummer);
             ResultSet resultset = statement.executeQuery();
@@ -329,6 +381,7 @@ public class Game
             statement.close();
         } catch (SQLException e) {
             //throw e;//TODO this should be ok?
+            System.out.println(e.getMessage());
         }
 
         // TODO TO HERE
@@ -342,16 +395,17 @@ public class Game
             PreparedStatement statement;
             statement = conn.prepareStatement(
                     "SELECT isHotel, locationCountry1, locationArea1, locationCountry2, locationArea2, cost FROM" +
-                            "(" +
-                            "(" +
-                            "SELECT true AS isHotel, locationcountry AS locationCountry1, locationname AS locationArea1, null AS locationCountry2, " +
-                            " null AS locationArea2, price AS cost FROM Hotels WHERE ownercountry = ? AND ownerpersonnummer = ? " +
-                            ")" +
-                            "UNION" +
-                            "(" +
-                            "SELECT false AS isHotel, tocountry AS locationCountry1, toarea AS locationArea1, fromcountry AS locationCountry2, " +
-                            " fromarea AS locationArea2, roadtax AS cost FROM Roads WHERE ownercountry = ? AND ownerpersonnummer = ? " +
-                            ")) as huehue"   );
+                            "( " +
+                                "( " +
+                                "SELECT  true AS isHotel, locationcountry AS locationCountry1, locationname AS locationArea1, null AS locationCountry2, " +
+                                " null AS locationArea2, 0 AS cost  FROM Hotels WHERE ownercountry = ? AND ownerpersonnummer = ? " +
+                                ")" +
+                                "UNION" +
+                                "(" +
+                                "SELECT  false AS isHotel, tocountry AS locationCountry1, toarea AS locationArea1, fromcountry AS locationCountry2, " +
+                                " fromarea AS locationArea2, roadtax AS cost  FROM Roads WHERE ownercountry = ? AND ownerpersonnummer = ? " +
+                                ")" +
+                            " ) as huehue"   );
             statement.setString(1, country);
             statement.setString(2, personnummer);
             statement.setString(3, country);
@@ -362,6 +416,7 @@ public class Game
             statement.close();
         } catch (SQLException e) {
             //throw e;//TODO this should be ok?
+            System.out.println(e.getMessage());
         }
 
         // TODO TO HERE
@@ -387,6 +442,7 @@ public class Game
             statement.close();
         } catch (SQLException e) {
             //throw e;//TODO this should be ok?
+            System.out.println(e.getMessage());
         }
         // TODO TO HERE
     }
@@ -407,7 +463,7 @@ public class Game
             statement.setString(6, area2);
             statement.executeUpdate();
             //How much does a road sell for????
-            statement = conn.prepareStatement("UPDATE Persons SET budget = (budget + getval('roadprice') WHERE personnummer = ? AND country = ? " );
+            statement = conn.prepareStatement("UPDATE Persons SET budget = (budget + getval('roadprice'))  WHERE personnummer = ? AND country = ? " );
             statement.setString(1, person.country);
             statement.setString(2, person.personnummer);
             statement.executeUpdate();
@@ -415,6 +471,7 @@ public class Game
             statement.close();
             return 1;
         } catch (SQLException e) {
+            System.out.println(e.getMessage());
             return 0;
         }
         // TODO TO HERE
@@ -436,6 +493,7 @@ public class Game
             statement.close();
             return 1;
         } catch (SQLException e) {
+            System.out.println(e.getMessage());
             return 0;
         }
         // TODO TO HERE
@@ -447,7 +505,7 @@ public class Game
         // TODO: Your implementation here
         try{
             PreparedStatement statement;
-            statement = conn.prepareStatement("INSERT INTO Roads (fromcountry, fromarea, tocountry, toarea, ownercountry, ownerpersonnummer) " +
+            statement = conn.prepareStatement("INSERT INTO Roads  " +
                     "VALUES( ?, ?, ?, ?, ?, ?)");
             statement.setString(1, country1);
             statement.setString(2, area1);
@@ -459,6 +517,7 @@ public class Game
             statement.close();
             return 1;
         } catch (SQLException e) {
+            System.out.println(e.getMessage());
             return 0;
         }
         // TODO TO HERE
@@ -470,17 +529,18 @@ public class Game
         // TODO: Your implementation here
         try{
             PreparedStatement statement;
-            statement = conn.prepareStatement("INSERT INTO Hotels (locationcountry, locationname, ownercountry, ownerpersonnummer, name) " +
+            statement = conn.prepareStatement("INSERT INTO Hotels  " +
                     "VALUES( ?, ?, ?, ?, ?)");
-            statement.setString(1, country);
-            statement.setString(2, city);
-            statement.setString(3, person.country);
-            statement.setString(4, person.personnummer);
-            statement.setString(5, person.playername);
+            statement.setString(1, name);
+            statement.setString(2, country);
+            statement.setString(3, city);
+            statement.setString(4, person.country);
+            statement.setString(5, person.personnummer);
             statement.executeUpdate();
             statement.close();
             return 1;
         } catch (SQLException e) {
+            System.out.println(e.getMessage());
             return 0;
         }
         // TODO TO HERE
@@ -492,8 +552,8 @@ public class Game
         // TODO: Your implementation here
         try{
             PreparedStatement statement;
-            statement = conn.prepareStatement("UPDATE Persons SET (locationcountry, locationarea) VALUES( ?, ?)" +
-                    "WHERE country = ? AND personnummer = ?");
+            statement = conn.prepareStatement(" UPDATE Persons SET  locationcountry = ? , locationarea = ?  " +
+                    " WHERE country = ? AND personnummer = ?");
             statement.setString(1, country);
             statement.setString(2, area);
             statement.setString(3, person.country);
@@ -502,6 +562,7 @@ public class Game
             statement.close();
             return 1;
         } catch (SQLException e) {
+            System.out.println(e.getMessage());
             return 0;
         }
         // TODO TO HERE
@@ -512,11 +573,12 @@ public class Game
         // TODO: Your implementation here
         try{
             PreparedStatement statement;
-            statement = conn.prepareStatement("UPDATE Cities SET (visitbonus = visitbonus + 1000) LIMIT 1");
+            statement = conn.prepareStatement("UPDATE Cities SET  visitbonus = visitbonus + 1000 LIMIT 1");
             statement.executeUpdate();
             statement.close();
         } catch (SQLException e) {
             //throw e;//TODO this should be ok?
+            System.out.println(e.getMessage());
         }
         // TODO TO HERE
     }
@@ -533,6 +595,7 @@ public class Game
             statement.close();
         } catch (SQLException e) {
             //throw e;//TODO this should be ok?
+            System.out.println(e.getMessage());
         }
         // TODO TO HERE
     }
@@ -573,15 +636,15 @@ public class Game
 
 			/* This block creates the government entry and the necessary country and area for that. */
             try {
-                PreparedStatement statement = conn.prepareStatement("INSERT INTO Countries (name) VALUES (?)");
+                PreparedStatement statement = conn.prepareStatement("INSERT INTO Countries  VALUES (?)");
                 statement.setString(1, "");
                 statement.executeUpdate();
-                statement = conn.prepareStatement("INSERT INTO Areas (country, name, population) VALUES (?, ?, cast(? as INT))");
+                statement = conn.prepareStatement("INSERT INTO Areas  VALUES (?, ?, cast(? as INT))");
                 statement.setString(1, "");
                 statement.setString(2, "");
                 statement.setString(3, "1");
                 statement.executeUpdate();
-                statement = conn.prepareStatement("INSERT INTO Persons (country, personnummer, name, locationcountry, locationarea, budget) VALUES (?, ?, ?, ?, ?, cast(? as NUMERIC))");
+                statement = conn.prepareStatement("INSERT INTO Persons  VALUES (?, ?, ?, ?, ?, cast(? as NUMERIC))");
                 statement.setString(1, "");
                 statement.setString(2, "");
                 statement.setString(3, "Government");

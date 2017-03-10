@@ -1,1 +1,0 @@
-INSERT INTO Hotels VALUES(name = 'hej');
